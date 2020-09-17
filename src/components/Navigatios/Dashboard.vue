@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pb-15">
     <v-row>
       <v-col>
         <h1 class="font-weight-light">Control Rutas</h1>
@@ -257,11 +257,6 @@
         </v-card>
       </v-col>
     </v-row>-->
-    <v-footer fluid color="white darken-4" class="py-3 elevation-1">
-      <span class="ml-auto overline"
-        >Copyright © 2016-2020 Chariot. All rights reserved</span
-      >
-    </v-footer>
   </div>
 </template>
 

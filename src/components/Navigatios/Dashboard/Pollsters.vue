@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pb-15">
     <v-alert id="alert" type="error" :value="showAlert">
       {{ alertMessage }}
     </v-alert>
