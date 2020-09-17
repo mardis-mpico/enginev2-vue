@@ -1,27 +1,82 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Vue from "vue";
+import VueRouter from "vue-router";
+import store from "../store";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
-  const routes = [
+const routes = [
   {
-    path: '/',
-    name: 'Home',
-    component: Home
+    path: "/",
+    redirect: "/Login",
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  }
-]
+    path: "/Login",
+    name: "Login",
+    component: () => import("../components/Navigatios/Login.vue"),
+  },
+  {
+    path: "/Home",
+    meta: { requiresAuth: true },
+    component: () => import("../views/Home.vue"),
+    children: [
+      {
+        path: "DashBoard",
+        component: () => import("../components/Navigatios/Dashboard.vue"),
+      },
+      {
+        path: "DashBoard/Pollsters",
+        component: () => import("../components/Navigatios/Dashboard/Pollsters.vue"),
+      },
+      {
+        path: "Campaign",
+        component: () => import("../components/Navigatios/Campaigns.vue"),
+      },
+      {
+        path: "Customer",
+        component: () => import("../components/Navigatios/Costumers.vue"),
+      },
+      {
+        path: "Service",
+        component: () => import("../components/Navigatios/Services.vue"),
+      },
+      {
+        path: "Branch",
+        component: () => import("../components/Navigatios/Branches.vue"),
+      },
+      {
+        path: "Task",
+        component: () => import("../components/Navigatios/Task.vue"),
+      },
+    ],
+  },
+];
 
 const router = new VueRouter({
-  routes
-})
+  routes,
+});
 
-export default router
+router.beforeEach((to, from, next) => {
+  if(to.path !== "/Home"){
+    store.state.showHomeContent = false;
+  }else{
+    store.state.showHomeContent = true;
+  }
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const isLogged = store.state.auth.isLogged;
+  console.log(from.path + "  " + to.path + "  " + requiresAuth + "  " +  isLogged);
+  if (!requiresAuth && isLogged && to.path === "/Login") {
+    if (from.path === "/") {
+      next("/Home");
+    } else {
+      next(from.path);
+    }
+  } else if (requiresAuth && !isLogged) {
+    next("/Login");
+  } else if (to.path === from.path) {
+    console.log("recarga");
+  } else {
+    next();
+  }
+});
+
+export default router;

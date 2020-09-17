@@ -1,29 +1,60 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import Vue from "vue";
+import Vuex from "vuex";
+import VuexPersistence from "vuex-persist";
 
-Vue.use(Vuex)
+Vue.use(Vuex);
+
+const vuexLocal = new VuexPersistence({
+  storage: window.localStorage,
+  modules: ["auth"],
+});
+
+import auth from "@/modules/authentication";
 
 export default new Vuex.Store({
   state: {
-    dialog:{
-      open:false,
-      mess:"Cargando valor de dolar"
-
-
+    user: null,
+    loading: false,
+    error: false,
+    errorMessage: "",
+    toggleState: true,
+    showHomeContent: true, 
+  },
+  getters: {
+    toggleDrawer(state) {
+      return state.toggleState;
+    },
+    getUserData(state){
+      return state.user;
+    },
+    getShowHomeContent(state){
+      return state.showHomeContent;
     }
   },
   mutations: {
-    async  OpenLoading(state, data) {
-     state.dialog.open=!state.dialog.open;
-     state.dialog.mess=data;
+    setUserData(state, user){
+      state.user = user;
     },
-    async  CloseLoading(state, data) {
-      state.dialog.open=!state.dialog.open;
-      state.dialog.mess=data;
-     },
-  },
-  actions: {
+    setToggleState(state,bool) {
+      state.toggleState = bool;
+    },
+    setLoading(state, bool) {
+      state.loading = bool;
+    },
+    setError(state, error) {
+      state.error = true;
+      state.errorMessage = error;
+    },
+    setShowHomeContent(state){
+      state.showHomeContent = false;
+    },
+    restoreErrors(state) {
+      state.error = false;
+      state.errorMessage = "";
+    },
   },
   modules: {
-  }
-})
+    auth,
+  },
+  plugins: [vuexLocal.plugin],
+});
