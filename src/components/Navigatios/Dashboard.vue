@@ -546,13 +546,14 @@ export default {
           _route: itemData,
         };
         const response = await http.post(`/Branch/LoadTask`, uploadHeaderData);
-        console.log(response);
         if (response.status === "error") {
-          throw response.data;
+          throw response;
         }
         this.successList.push(itemData);
       } catch (dataError) {
-        this.errorList.push(dataError);
+        if ("status" in dataError && "data" in dataError) {
+          this.errorList.push(dataError.data);
+        }
       } finally {
         console.log("");
       }
@@ -560,12 +561,10 @@ export default {
 
     async getErrorDocument() {
       try {
-        console.log(this.errorList);
         const response = await http.post(
           `/Branch/PrintErrorLoadTask`,
           this.errorList
         );
-        console.log(response);
         this.errorDownloadLink = response.data;
       } catch (e) {
         alert("ERROR AL OBTENER ARCHIVO DE ERRORES");
