@@ -1,30 +1,331 @@
 <template>
   <div class="pb-15">
+    <v-row justify="center">
+      <v-dialog v-model="dialog" persistent max-width="600px">
+        <v-card>
+          <v-card-title>
+            <h2 class="tText">Importar archivos</h2>
+            <v-spacer />
+            <v-btn
+              class="pr-0 pl-0 text-capitalize"
+              text
+              medium
+              elevation="0"
+              color="success"
+              href="/assets/cargaTareas.xlsx"
+              download="cargaTareas.xlsx"
+            >
+              <v-icon left>mdi-file-excel</v-icon>
+              Tareas
+            </v-btn>
+            <v-btn
+              class="pr-0 pl-0 ml-4 text-capitalize"
+              text
+              medium
+              elevation="0"
+              color="success"
+              href="/assets/cargaLocales.xlsx"
+              download="cargaLocales.xlsx"
+            >
+              <v-icon left>mdi-file-excel</v-icon>
+              Local
+            </v-btn>
+          </v-card-title>
+          <v-card-subtitle>
+            <v-row class="pl-3 pr-5 pt-2 mr-5">
+              <h5 class="tText">Productos</h5>
+              <v-spacer />
+              <h5 class="tText">Formatos</h5>
+            </v-row>
+          </v-card-subtitle>
+          <v-card-text class="pa-0">
+            <v-stepper v-model="step" class="elevation-0">
+              <v-stepper-header class="elevation-0">
+                <v-stepper-step :complete="step > 1" step="1" color="accent"
+                  >Subir archivo</v-stepper-step
+                >
+                <v-divider></v-divider>
+                <v-stepper-step :complete="step > 2" step="2" color="accent"
+                  >Escoger opciones</v-stepper-step
+                >
+                <v-divider></v-divider>
+                <v-stepper-step
+                  :complete="resumeComplete"
+                  step="3"
+                  color="accent"
+                  >Resumen</v-stepper-step
+                >
+              </v-stepper-header>
+              <v-stepper-items>
+                <v-stepper-content step="1">
+                  <v-card class="mb-2 elevation-0" height="300px">
+                    <v-card-text>
+                      <v-file-input
+                        v-model="file"
+                        color="deep-purple accent-4"
+                        counter
+                        label="Archivo"
+                        placeholder="Seleccione archivo a subir"
+                        accept=".xls,.xlsx"
+                        prepend-icon=""
+                        outlined
+                        height="120px"
+                        :show-size="1000"
+                      >
+                        <template v-slot:selection="{ index, text }">
+                          <v-row class="justify-center">
+                            <v-chip
+                              v-if="index < 2"
+                              color="deep-purple accent-4"
+                              dark
+                              label
+                              small
+                            >
+                              {{ text }}
+                            </v-chip>
+                          </v-row>
+                        </template>
+                      </v-file-input>
+                    </v-card-text>
+                    <v-card-actions class="justify-center">
+                      <v-btn
+                        class="ml-2 text-capitalize"
+                        color="deep-purple accent-4"
+                        :loading="loadingData"
+                        text
+                        :dark="!fileInput && !lockUp"
+                        @click="readFile"
+                        :disabled="fileInput || lockUp"
+                        >Subir</v-btn
+                      >
+                      <v-btn
+                        class="text-capitalize"
+                        color="deep-purple accent-4"
+                        :dark="!parsedState"
+                        @click="backToSecond"
+                        :disabled="parsedState"
+                      >
+                        Continuar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-stepper-content>
+
+                <v-stepper-content step="2">
+                  <ValidationObserver ref="obs" v-slot="{ invalid, validated }">
+                    <v-card class="mb-2 elevation-0" height="300px">
+                      <v-card-text>
+                        <ValidationProvider
+                          name="campaña"
+                          rules="required"
+                          v-slot="{ errors }"
+                        >
+                          <v-select
+                            v-model="selectCampaign"
+                            name="campaña"
+                            :items="['GUAYAQUIL', 'QUITO']"
+                            label="Campañas"
+                            outlined
+                            :dense="true"
+                            color="accent darken-1"
+                            :menu-props="{ top: false, offsetY: true }"
+                            :error-messages="errors"
+                          ></v-select>
+                        </ValidationProvider>
+
+                        <v-select
+                          class="pt-1"
+                          v-model="computedOption"
+                          :items="optionItems"
+                          label="Opción"
+                          color="accent darken-1"
+                          outlined
+                          :dense="true"
+                          :menu-props="{ top: false, offsetY: true }"
+                        ></v-select>
+                        <ValidationProvider
+                          name="estado"
+                          rules="required"
+                          v-slot="{ errors }"
+                          v-if="showState"
+                        >
+                          <v-select
+                            class="pt-1"
+                            v-model="selectState"
+                            name="estado"
+                            :items="stateItems"
+                            label="Estado de tareas"
+                            outlined
+                            :dense="true"
+                            color="accent darken-1"
+                            :menu-props="{ top: false, offsetY: true }"
+                            :error-messages="errors"
+                          ></v-select>
+                        </ValidationProvider>
+                      </v-card-text>
+                      <v-card-actions class="justify-center">
+                        <v-btn
+                          class="ml-2 text-capitalize"
+                          text
+                          @click="step = 1"
+                          >Volver</v-btn
+                        >
+                        <v-btn
+                          class="text-capitalize"
+                          color="deep-purple accent-4"
+                          :dark="!invalid && validated"
+                          @click="insertData"
+                          :disabled="invalid || !validated"
+                        >
+                          Continuar
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </ValidationObserver>
+                </v-stepper-content>
+
+                <v-stepper-content step="3">
+                  <v-card
+                    class="background mb-2 elevation-0"
+                    color="grey lighten-1"
+                    height="300px"
+                  >
+                    <v-card-text class="pt-0">
+                      <v-row>
+                        <v-col class="elevation-1" cols="12" sm="6" md="6">
+                          <v-container>
+                            <h4>Datos Cargados</h4>
+                            <v-progress-linear
+                              v-if="uploadData !== null"
+                              :active="true"
+                              :background-opacity="0.3"
+                              :buffer-value="100"
+                              :height="15"
+                              :value="
+                                (successList.length * 100) / uploadData.length
+                              "
+                              color="success"
+                            >
+                              <template>
+                                <strong>{{ successList.length }}</strong>
+                              </template>
+                            </v-progress-linear>
+                          </v-container>
+                          <v-container>
+                            <h4>Errores</h4>
+                            <v-progress-linear
+                              v-if="uploadData !== null"
+                              :active="true"
+                              :background-opacity="0.3"
+                              :buffer-value="100"
+                              :height="15"
+                              :value="
+                                (errorList.length * 100) / uploadData.length
+                              "
+                              color="error"
+                            >
+                              <template>
+                                <strong>{{ errorList.length }}</strong>
+                              </template>
+                            </v-progress-linear>
+                          </v-container>
+                        </v-col>
+                        <v-col
+                          class="align-self-center"
+                          cols="12"
+                          sm="6"
+                          md="6"
+                        >
+                          <v-container class="text-center">
+                            <v-btn
+                              class="ma-2 text-capitalize"
+                              medium
+                              elevation="1"
+                              color="error"
+                              :href="errorDownloadLink"
+                              download="Acme Documentation (ver. 2.0.1).txt"
+                              :disabled="errorList.length <= 0"
+                            >
+                              <v-icon left>mdi-file-excel</v-icon>
+                              Errores
+                            </v-btn>
+                          </v-container>
+                        </v-col>
+                      </v-row>
+                    </v-card-text>
+                    <v-card-actions class="justify-center">
+                      <v-btn
+                        class="ml-2 text-capitalize"
+                        text
+                        @click="resetImport"
+                        :disabled="lockFinishOptions"
+                        >Importar Nuevo</v-btn
+                      >
+                      <v-btn
+                        class="text-capitalize"
+                        color="deep-purple accent-4"
+                        :dark="!lockFinishOptions"
+                        :disabled="lockFinishOptions"
+                        @click="finishImport"
+                      >
+                        Terminar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-stepper-content>
+              </v-stepper-items>
+            </v-stepper>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              class="mr-4 mb-3 text-capitalize"
+              color="error"
+              text
+              @click="finishImport"
+              >Salir</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
+
     <v-row>
       <v-col>
-        <h1 class="font-weight-light">Control Rutas</h1>
+        <h1 class="tText">Control Rutas</h1>
       </v-col>
-      <v-col class="text-right align-self-center">
-        <v-btn
-          class="pa-0"
-          tile
-          outlined
-          to="DashBoard/Pollsters"
-          color="error"
-        >
-          <v-col class="text-center">
-            <v-icon>mdi-account-group</v-icon>
-            <h6>Mercaderistas</h6>
-          </v-col>
-        </v-btn>
+      <v-col class="align-self-center">
+        <v-row class="justify-end">
+          <v-btn
+            class="ma-2 text-capitalize"
+            medium
+            elevation="1"
+            light
+            color="secondary-text"
+            @click="dialog = !dialog"
+          >
+            <v-icon left>mdi-file-excel</v-icon>
+            Importar
+          </v-btn>
+          <v-btn
+            class="ma-2 text-capitalize"
+            medium
+            to="DashBoard/Pollsters"
+            elevation="1"
+            color="#ffba69"
+          >
+            <v-icon left>mdi-account-group</v-icon>
+            Mercaderistas
+          </v-btn>
+        </v-row>
       </v-col>
     </v-row>
     <v-row class="justify-lg-space-between">
       <v-col lg="5" cols="sm" class="pb-2">
-        <v-card class="pa-3">
+        <v-card class="rounded-xl pa-3" rounded="true">
           <v-row class="align-baseline">
             <v-col cols="5" lg="4">
-              <h3 class="font-weight-light">Rutas Activas</h3>
+              <h3 class="tText">Rutas Activas</h3>
             </v-col>
             <v-col class="text-top" lg="8">
               <v-text-field
@@ -53,23 +354,16 @@
                 <td>{{ item.items }}</td>
               </tr>
             </template>
-            <!--<template slot="body.append">
-              <tr class="primary--text">
-                <th class="title">Totals</th>
-                <th class="title">{{ sumField("sales") }}</th>
-                <th class="title">{{ sumField("customers") }}</th>
-                <th class="title">{{ sumField("items") }}</th>
-              </tr>
-            </template>-->
           </v-data-table>
         </v-card>
       </v-col>
       <v-col lg="7" cols="sm" class="pb-2">
-        <v-card class="pa-3">
-          <h3 class="font-weight-light pb-3">Encuestadores</h3>
+        <v-card class="rounded-xl pa-3" rounded="true">
+          <h3 class="tText pb-3 mt-4 mb-4">Encuestadores</h3>
           <v-data-table
             :headers="headers"
             :items="reportItems"
+            class="elevation-1"
             item-key="id"
             light
           >
@@ -81,190 +375,58 @@
                 <td>{{ item.items }}</td>
               </tr>
             </template>
-            <!--<template slot="body.append">
-              <tr class="primary--text">
-                <th class="title">Totals</th>
-                <th class="title">{{ sumField("sales") }}</th>
-                <th class="title">{{ sumField("customers") }}</th>
-                <th class="title">{{ sumField("items") }}</th>
-              </tr>
-            </template>-->
           </v-data-table>
         </v-card>
       </v-col>
     </v-row>
-    <!--<v-row>
-      <v-col lg="4" cols="sm" class="pb-2">
-        <v-card>
-          <v-row class="no-gutters">
-            <div class="col-auto">
-              <div class="cyan fill-height pa-1"></div>
-            </div>
-            <div class="col pa-3 py-4 cyan--text">
-              <h5 class="text-truncate text-uppercase">Sales</h5>
-              <h1>53</h1>
-            </div>
-          </v-row>
-        </v-card>
-      </v-col>
-      <v-col lg="4" cols="sm" class="pb-2">
-        <v-card>
-          <v-row class="no-gutters">
-            <div class="col-auto">
-              <div class="primary fill-height pa-1"></div>
-            </div>
-            <div class="col pa-3 py-4 primary--text">
-              <h5 class="text-truncate text-uppercase">Growth</h5>
-              <h1>23%</h1>
-            </div>
-          </v-row>
-        </v-card>
-      </v-col>
-      <v-col lg="4" cols="sm" class="pb-2">
-        <v-card>
-          <v-row class="no-gutters">
-            <div class="col-auto">
-              <div class="success fill-height pa-1"></div>
-            </div>
-            <div class="col pa-3 py-4 success--text">
-              <h5 class="text-truncate text-uppercase">Calls</h5>
-              <h1>213</h1>
-            </div>
-          </v-row>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col lg="4" cols="md" class="pb-2">
-        <v-card class="dark">
-          <v-card-title class="font-weight-light text-truncate cyan--text">
-            Orders
-          </v-card-title>
-          <v-card-text>
-            <v-carousel
-              cycle
-              height="180"
-              interval="2000"
-              hide-delimiter-background
-              show-arrows-on-hover
-              light
-            >
-              <v-carousel-item>
-                <div class="row no-gutters">
-                  <div class="col">
-                    <div>
-                      <h2 class="cyan--text">Randy Sheets</h2>
-                      <p class="mt-1">Tutankum, WI 33192</p>
-                      <h3 class="mb-0">
-                        $217.00
-                        <i
-                          class="mdi mdi-36px mdi-credit-card-outline float-right"
-                        ></i>
-                      </h3>
-                      <p>Total items: 5</p>
-                    </div>
-                  </div>
-                </div>
-              </v-carousel-item>
-              <v-carousel-item>
-                <div class="row no-gutters">
-                  <div class="col">
-                    <div>
-                      <h2 class="cyan--text">Jose Valdex</h2>
-                      <p class="mt-1">Turnup, PA 23192</p>
-                      <h3 class="mb-0">
-                        $97.00
-                        <i class="mdi mdi-36px mdi-paypal float-right"></i>
-                      </h3>
-                      <p>Total items: 2</p>
-                    </div>
-                  </div>
-                </div>
-              </v-carousel-item>
-            </v-carousel>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col lg="4" cols="md" class="pb-2">
-        <v-card min-height="252">
-          <v-card-title class="font-weight-light text-truncate primary--text">
-            Goals
-          </v-card-title>
-          <v-card-text>
-            <p class="primary--text subtitle-1">
-              Results from last campaign
-            </p>
-            <div class="my-5">
-              <v-progress-linear
-                indeterminate
-                height="8"
-                color="primary"
-              ></v-progress-linear>
-              <h6>SINCE JAN 2020</h6>
-            </div>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn outlined rounded color="primary">
-              Details
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-      <v-col lg="4" cols="md" class="pb-2">
-        <v-card min-height="252">
-          <v-card-title class="font-weight-light text-truncate success--text">
-            On-boarding
-          </v-card-title>
-          <v-card-text>
-            <span class="success--text subtitle-1">
-              Judy Pincus
-            </span>
-            <div class="mb-3">
-              @jpincus
-              <h3>Service Manager</h3>
-              <span class="overline">Start date: 5/12/2020</span>
-            </div>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn outlined rounded color="success">
-              View
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <v-card class="mx-auto text-center">
-          <v-card-title class="primary--text">
-            Sales
-          </v-card-title>
-          <v-sparkline
-            :value="sparklineData"
-            padding="18"
-            label-size="4"
-            color="cyan"
-            :gradient="['#007bff', 'cyan']"
-            :line-width="2"
-            :stroke-linecap="'round'"
-            smooth
-          >
-            <template v-slot:label="item"> ${{ item.value }} </template>
-          </v-sparkline>
-          <v-card-actions class="py-4 justify-center">
-            <v-btn color="primary" to="/reports">View Report</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>-->
   </div>
 </template>
 
 <script>
+import { mapGetters, mapMutations } from "vuex";
+import XLSX from "xlsx";
+import { ValidationProvider, ValidationObserver } from "vee-validate";
+import { http } from "@/plugins/axios";
+
+var fileReader = new FileReader();
+
 export default {
+  components: {
+    ValidationProvider,
+    ValidationObserver,
+  },
   data() {
     return {
+      dialog: false,
+      step: 1,
+      resumeComplete: false,
       searchQuery: "",
+      file: undefined,
+      loadingData: false,
+      uploadData: null,
+      lockUp: false,
+      showState: false,
+      selectOption: "Importar local",
+      selectState: "",
+      selectCampaign: "",
+      errorList: [],
+      successList: [],
+      optionItems: ["Importar local", "Importar local y tareas"],
+      errorDownloadLink: "",
+      lockFinishOptions: true,
+      stateItems: [
+        "Visitas",
+        "Efectivas",
+        "Anulado Campo",
+        "Revisado Campo",
+        "Revisado Validación",
+        "Pendiente Validación",
+        "Anulado Validación",
+        "Editado",
+        "Incidencia",
+        "Pendiente Edición",
+        "Anulado Edición",
+      ],
       headers: [
         {
           text: "Product",
@@ -285,64 +447,233 @@ export default {
           items: 8029,
           available: null,
         },
-        {
-          id: 2,
-          name: "Safety gloves",
-          sales: 62,
-          customers: 12,
-          items: 70,
-          available: null,
-        },
-        {
-          id: 3,
-          name: "Widget 2",
-          sales: 262,
-          customers: 32,
-          items: 1020,
-          available: null,
-        },
-        {
-          id: 4,
-          name: "Widget 4",
-          sales: 362,
-          customers: 12,
-          items: 190,
-          available: null,
-        },
-        {
-          id: 4,
-          name: "Widget 4",
-          sales: 362,
-          customers: 12,
-          items: 190,
-          available: null,
-        },
-        {
-          id: 19,
-          name: "Widget ABC",
-          sales: 62,
-          customers: 5,
-          items: 17,
-          available: null,
-        },
-        {
-          id: 12,
-          name: "Widget 12",
-          sales: 262,
-          customers: 22,
-          items: 199,
-          available: null,
-        },
       ],
-      //sparklineData: [423, 446, 675, 510, 590, 610, 423],
     };
   },
-  computed: {
-    sumField(key) {
-      // sum data in give key (property)
-      return this.reportItems.reduce((a, b) => a + (b[key] || 0), 0);
+  watch: {
+    file(newVal) {
+      if (newVal === undefined) {
+        this.uploadData = null;
+        this.lockUp = false;
+      }
     },
   },
-  methods: {},
+  computed: {
+    ...mapGetters(["getUserData"]),
+
+    fileInput() {
+      return this.file === undefined;
+    },
+    parsedState() {
+      return this.uploadData === null;
+    },
+
+    computedOption: {
+      get() {
+        return this.getOption();
+      },
+      set(newValue) {
+        this.setOption(newValue);
+      },
+    },
+  },
+  methods: {
+    // REALIZA UN PROGRESS LOADIND A NIVEL DE RAÍZ
+    ...mapMutations(["setLoading"]),
+
+    getOption() {
+      return this.selectOption;
+    },
+
+    setOption(value) {
+      if (value !== "Importar local") {
+        this.selectState = "";
+        this.showState = true;
+      } else {
+        this.showState = false;
+      }
+      this.selectOption = value;
+    },
+
+    parseFile(result) {
+      try {
+        this.loadingData = true;
+        this.uploadData = null;
+        var data = result;
+        var workbook = XLSX.read(data, {
+          type: "binary",
+        });
+        let rowObject = XLSX.utils.sheet_to_row_object_array(
+          workbook.Sheets["Formato"]
+        );
+        if (rowObject.length > 0) {
+          let jsonObject = JSON.stringify(rowObject);
+          var isValid = this.checkValidDocument(jsonObject);
+          if (isValid) {
+            var hasDuplicate = this.checkForDuplicate(jsonObject);
+            if (!hasDuplicate) {
+              this.uploadData = JSON.parse(jsonObject);
+              this.lockUp = true;
+            } else {
+              alert("EL DOCUMENTO CONTIENE DATOS DUPLICADOS");
+            }
+          } else {
+            alert("DOCUMENTO NO VALIDO, REVISE EL FORMATO ADECUADO");
+          }
+        } else {
+          alert("DOCUMENTO NO VALIDO, REVISE EL FORMATO ADECUADO");
+        }
+        this.loadingData = false;
+      } catch (e) {
+        console.log(e);
+      }
+    },
+
+    readFile() {
+      if (this.file) {
+        fileReader.readAsBinaryString(this.file);
+        fileReader.onload = (e) => this.parseFile(e.target.result);
+        fileReader.onerror = () => alert("Error al cargar el archivo");
+      }
+    },
+
+    async uploadDataToServer(itemData) {
+      try {
+        var uploadHeaderData = {
+          account: parseInt(this.getUserData.idAccount, 10),
+          iduser: this.getUserData.idUser,
+          option: 1,
+          _route: itemData,
+        };
+        console.log(uploadHeaderData);
+        const response = await http.post(`/Branch/LoadTask`, uploadHeaderData);
+        if (response.error !== null) {
+          throw response.error;
+        }
+        this.successList.push(itemData);
+      } catch (e) {
+        var errorParse = (itemData.Error = e);
+        this.errorList.push(errorParse);
+      } finally {
+        console.log("");
+      }
+    },
+
+    async getErrorDocument() {
+      try {
+        const response = await http.post(
+          `/Branch/PrintErrorLoadTask`,
+          this.errorList
+        );
+        this.errorDownloadLink = response.data;
+      } catch (e) {
+        alert("ERROR AL OBTENER ARCHIVO DE ERRORES");
+      } finally {
+        console.log("");
+      }
+    },
+
+    checkValidDocument(data) {
+      var json = JSON.parse(data);
+
+      if (
+        "Codigo_Encuesta" in json[0] &&
+        "PT_indice" in json[0] &&
+        "Tipo" in json[0] &&
+        "local" in json[0] &&
+        "Dirección" in json[0] &&
+        "Referencia" in json[0] &&
+        "Nombres" in json[0] &&
+        "Apellidos" in json[0] &&
+        "Mail" in json[0] &&
+        "Cédula" in json[0] &&
+        "Celular" in json[0] &&
+        "Telefono" in json[0] &&
+        "Latitud" in json[0] &&
+        "Longitud" in json[0] &&
+        "Provincia" in json[0] &&
+        "Canton" in json[0] &&
+        "Parroquia" in json[0] &&
+        "Estado" in json[0] &&
+        "CLUSTER" in json[0] &&
+        "RUTA" in json[0] &&
+        "IMEI" in json[0]
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+
+    checkForDuplicate(data) {
+      var json = JSON.parse(data);
+      var repeted = false;
+      for (var i = 0, len = json.length; i < len; i++) {
+        for (var j = 0, lenCopy = json.length; j < lenCopy; j++) {
+          if (
+            i !== j &&
+            json[i]["Codigo_Encuesta"] === json[j]["Codigo_Encuesta"]
+          ) {
+            repeted = true;
+            break;
+          }
+        }
+        if (repeted) break;
+      }
+      return repeted;
+    },
+
+    insertData() {
+      this.lockFinishOptions = true;
+      this.step = 3;
+      setTimeout(async () => {
+        this.setLoading(true);
+
+        for (var i = 0, len = this.uploadData.length; i < len; i++) {
+          await this.uploadDataToServer(this.uploadData[i]);
+        }
+
+        if (this.errorList.length > 0) {
+          this.getErrorDocument();
+        }
+
+        this.setLoading(false);
+        this.lockFinishOptions = false;
+      }, 630);
+    },
+
+    backToSecond() {
+      this.step = 2;
+      this.$refs.obs.reset();
+      this.selectCampaign = "";
+    },
+
+    resetImport() {
+      this.clearImportData();
+      this.step = 1;
+    },
+
+    clearImportData() {
+      this.file = undefined;
+      this.$refs.obs.reset();
+      this.selectState = "";
+      this.selectCampaign = "";
+      this.errorList = [];
+      this.successList = [];
+    },
+
+    finishImport() {
+      this.dialog = false;
+      this.resetImport();
+    },
+  },
 };
 </script>
+
+<style scoped>
+.tText {
+  color: #232365;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+</style>

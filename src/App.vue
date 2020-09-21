@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :style="{background: $vuetify.theme.themes.light.background}">
     <Loader v-if="loading"></Loader>
     <div v-if="isLogged">
       <div class="app-container" v-if="routesLoaded">
@@ -80,7 +80,7 @@ export default {
       if (option.name === "logout") {
         this.logOut();
         localStorageService.clearToken();
-        this.$router.push("/login");
+        this.$router.replace("/login");
       } else {
         this.title = option.name;
       }

@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer
+  <!--<v-navigation-drawer
     v-model="toggleDrawer"
     app
     floating
@@ -7,9 +7,18 @@
     :mini-variant.sync="mini"
     dark
     color="grey darken-4"
+  >-->
+  <v-navigation-drawer
+    v-model="toggleDrawer"
+    app
+    floating
+    :permanent="toggleDrawer"
+    :mini-variant="true"
+    color="secondary"
   >
     <v-list dense nav class="py-0">
-      <v-tooltip :disabled="!mini" right>
+      <!--<v-tooltip :disabled="!mini" right>-->
+      <v-tooltip :disabled="false" right>
         <template v-slot:activator="{ on, attrs }">
           <v-list-item
             two-line
@@ -36,8 +45,14 @@
       </v-tooltip>
       <v-divider></v-divider>
 
-      <v-tooltip
+      <!--<v-tooltip
         :disabled="!mini"
+        right
+        v-for="route in routes"
+        :key="route.name"
+      >-->
+      <v-tooltip
+        :disabled="false"
         right
         v-for="route in routes"
         :key="route.name"
@@ -49,9 +64,10 @@
             @click="$emit(event, { name: route.name })"
             v-bind="attrs"
             v-on="on"
+            active-class="accent--text"
           >
-            <v-list-item-icon>
-              <v-icon>{{ route.icon }}</v-icon>
+            <v-list-item-icon >
+              <v-icon >{{ route.icon }}</v-icon>
             </v-list-item-icon>
 
             <v-list-item-content>
@@ -62,7 +78,8 @@
         <span>{{ route.name }}</span>
       </v-tooltip>
 
-      <v-tooltip :disabled="!mini" right>
+      <!--<v-tooltip :disabled="!mini" right>-->
+      <v-tooltip :disabled="false" right>
         <template v-slot:activator="{ on, attrs }">
           <v-list-item
             link
@@ -112,9 +129,9 @@ export default {
         this.setToggleState(newValue);
       },
     },
-    mini() {
+    /*mini() {
       return this.$vuetify.breakpoint.smAndDown || this.toggleMini;
-    },
+    },*/
     bg() {
       return this.background
         ? "https://cdn.vuetifyjs.com/images/backgrounds/bg-2.jpg"
@@ -126,6 +143,7 @@ export default {
 </script>
 
 <style>
+
 ::-webkit-scrollbar {
   width: 8px;
   background-color: #111;
