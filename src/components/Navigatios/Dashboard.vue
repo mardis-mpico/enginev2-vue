@@ -12,7 +12,7 @@
               medium
               elevation="0"
               color="success"
-              href="/assets/cargaTareas.xlsx"
+              href="../../assets/cargaTareas.xlsx"
               download="cargaTareas.xlsx"
             >
               <v-icon left>mdi-file-excel</v-icon>
@@ -24,7 +24,7 @@
               medium
               elevation="0"
               color="success"
-              href="/assets/cargaLocales.xlsx"
+              href="../../assets/cargaLocales.xlsx"
               download="cargaLocales.xlsx"
             >
               <v-icon left>mdi-file-excel</v-icon>
@@ -545,15 +545,14 @@ export default {
           option: 1,
           _route: itemData,
         };
-        console.log(uploadHeaderData);
         const response = await http.post(`/Branch/LoadTask`, uploadHeaderData);
-        if (response.error !== null) {
-          throw response.error;
+        console.log(response);
+        if (response.status === "error") {
+          throw response.data;
         }
         this.successList.push(itemData);
-      } catch (e) {
-        var errorParse = (itemData.Error = e);
-        this.errorList.push(errorParse);
+      } catch (dataError) {
+        this.errorList.push(dataError);
       } finally {
         console.log("");
       }
@@ -561,10 +560,12 @@ export default {
 
     async getErrorDocument() {
       try {
+        console.log(this.errorList);
         const response = await http.post(
           `/Branch/PrintErrorLoadTask`,
           this.errorList
         );
+        console.log(response);
         this.errorDownloadLink = response.data;
       } catch (e) {
         alert("ERROR AL OBTENER ARCHIVO DE ERRORES");
@@ -634,7 +635,7 @@ export default {
         }
 
         if (this.errorList.length > 0) {
-          this.getErrorDocument();
+          await this.getErrorDocument();
         }
 
         this.setLoading(false);
