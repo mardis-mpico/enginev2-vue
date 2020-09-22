@@ -232,9 +232,6 @@
                                 v-on="on"
                                 :error-messages="errors"
                               ></v-text-field>
-                              <!--<h5 v-if="!errors.length" class="pt-0">
-                                (Fecha de fin es mayor a la fecha de inicio)
-                              </h5>-->
                             </ValidationProvider>
                           </template>
                           <v-date-picker
@@ -252,13 +249,6 @@
                   <v-btn color="accent darken-1" text @click="close('P')"
                     >Salir</v-btn
                   >
-                  <!--<v-btn
-                    color="blue darken-1"
-                    :dark="!invalid && validated"
-                    @click="handleSubmit(save)"
-                    :disabled="invalid || !validated"
-                    >Guardar</v-btn
-                  >-->
                   <v-btn color="accent darken-1" dark @click="handleSubmit(save)"
                     >Guardar</v-btn
                   >
@@ -274,7 +264,7 @@
         <v-card class="rounded-xl pa-3" rounded="true">
           <v-row class="align-baseline">
             <v-col cols="5" lg="4">
-              <h3 class="tText">Encuestadores en ruta</h3>
+              <h3 class="tText pl-3">Encuestadores en ruta</h3>
             </v-col>
             <v-col class="text-top" lg="8">
               <v-text-field
@@ -292,7 +282,7 @@
             :headers="headers"
             :items="pollsters"
             item-key="id"
-            class="elevation-1"
+            class="elevation-0"
             light
             :fixed-header="true"
             :search="searchQuery"

@@ -121,11 +121,12 @@
                           v-slot="{ errors }"
                         >
                           <v-select
-                            v-model="selectCampaign"
+                            v-model="computedCampaign"
                             name="campaña"
-                            :items="['GUAYAQUIL', 'QUITO']"
+                            :items="campaignItems"
                             label="Campañas"
                             outlined
+                            item-text="name"
                             :dense="true"
                             color="accent darken-1"
                             :menu-props="{ top: false, offsetY: true }"
@@ -151,11 +152,12 @@
                         >
                           <v-select
                             class="pt-1"
-                            v-model="selectState"
+                            v-model="computedState"
                             name="estado"
                             :items="stateItems"
                             label="Estado de tareas"
                             outlined
+                            item-text="name"
                             :dense="true"
                             color="accent darken-1"
                             :menu-props="{ top: false, offsetY: true }"
@@ -323,18 +325,18 @@
     <v-row class="justify-lg-space-between">
       <v-col lg="5" cols="sm" class="pb-2">
         <v-card class="rounded-xl pa-3" rounded="true">
-          <v-row class="align-baseline">
+          <v-row class="align-baseline justify-space-between">
             <v-col cols="5" lg="4">
-              <h3 class="tText">Rutas Activas</h3>
+              <h3 class="tText pl-3">Rutas Activas</h3>
             </v-col>
-            <v-col class="text-top" lg="8">
+            <v-col class="text-top pr-3" lg="7">
               <v-text-field
                 v-model="searchQuery"
                 dense
                 append-icon="mdi-magnify"
                 placeholder="Buscar"
                 outlined
-                color="cyan"
+                color="accent"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -342,7 +344,7 @@
             :headers="headers"
             :items="reportItems"
             item-key="id"
-            class="elevation-1"
+            class="elevation-0"
             light
             :search="searchQuery"
           >
@@ -359,11 +361,11 @@
       </v-col>
       <v-col lg="7" cols="sm" class="pb-2">
         <v-card class="rounded-xl pa-3" rounded="true">
-          <h3 class="tText pb-3 mt-4 mb-4">Encuestadores</h3>
+          <h3 class="tText pb-3 mt-4 mb-4 pl-3">Encuestadores</h3>
           <v-data-table
             :headers="headers"
             :items="reportItems"
-            class="elevation-1"
+            class="elevation-0"
             item-key="id"
             light
           >
@@ -395,38 +397,31 @@ export default {
     ValidationProvider,
     ValidationObserver,
   },
+  created() {
+    this.getCampaignInServer();
+    this.getStatesInServer();
+  },
   data() {
     return {
-      dialog: false,
       step: 1,
-      resumeComplete: false,
+      dialog: false,
       searchQuery: "",
-      file: undefined,
+      resumeComplete: false,
       loadingData: false,
-      uploadData: null,
       lockUp: false,
       showState: false,
-      selectOption: "Importar local",
-      selectState: "",
-      selectCampaign: "",
       errorList: [],
       successList: [],
-      optionItems: ["Importar local", "Importar local y tareas"],
-      errorDownloadLink: "",
       lockFinishOptions: true,
-      stateItems: [
-        "Visitas",
-        "Efectivas",
-        "Anulado Campo",
-        "Revisado Campo",
-        "Revisado Validación",
-        "Pendiente Validación",
-        "Anulado Validación",
-        "Editado",
-        "Incidencia",
-        "Pendiente Edición",
-        "Anulado Edición",
-      ],
+      optionItems: ["Importar local", "Importar local y tareas"],
+      campaignItems: [],
+      stateItems: [],
+      selectOption: "Importar local",
+      selectState: null,
+      selectCampaign: null,
+      errorDownloadLink: "",
+      file: undefined,
+      uploadData: null,
       headers: [
         {
           text: "Product",
@@ -470,20 +465,32 @@ export default {
 
     computedOption: {
       get() {
-        return this.getOption();
+        return this.selectOption;
       },
       set(newValue) {
         this.setOption(newValue);
+      },
+    },
+    computedCampaign: {
+      get() {
+        return this.selectCampaign === null ? "" : this.selectCampaign;
+      },
+      set(newValue) {
+        this.selectCampaign = newValue;
+      },
+    },
+    computedState: {
+      get() {
+        return this.selectState === null ? "" : this.selectState;
+      },
+      set(newValue) {
+        this.selectState = newValue;
       },
     },
   },
   methods: {
     // REALIZA UN PROGRESS LOADIND A NIVEL DE RAÍZ
     ...mapMutations(["setLoading"]),
-
-    getOption() {
-      return this.selectOption;
-    },
 
     setOption(value) {
       if (value !== "Importar local") {
@@ -493,6 +500,48 @@ export default {
         this.showState = false;
       }
       this.selectOption = value;
+    },
+
+    async getCampaignInServer() {
+      try {
+        var requestParams = {
+          Iduser: this.getUserData.idUser,
+          IdAccount: parseInt(this.getUserData.idAccount, 10),
+        };
+
+        const response = await http.post(
+          `/Branch/RouteCampaign`,
+          requestParams
+        );
+        if (response.status === "Ok") {
+          this.campaignItems = response.data;
+        } else {
+          throw response.messege;
+        }
+      } catch (dataError) {
+        alert(dataError);
+      } finally {
+        console.log("");
+      }
+    },
+
+    async getStatesInServer() {
+      try {
+        var requestParams = {
+          Iduser: this.getUserData.idUser,
+          IdAccount: parseInt(this.getUserData.idAccount, 10),
+        };
+        const response = await http.post(`/Branch/RouteStatus`, requestParams);
+        if (response.status === "Ok") {
+          this.stateItems = response.data;
+        } else {
+          throw response.messege;
+        }
+      } catch (dataError) {
+        alert(dataError);
+      } finally {
+        console.log("");
+      }
     },
 
     parseFile(result) {
@@ -537,14 +586,40 @@ export default {
       }
     },
 
-    async uploadDataToServer(itemData) {
+    getCampaingIdFromObject() {
+      var campaignSelectObject = this.campaignItems.filter(
+        (element) => element.name === this.selectCampaign
+      );
+
+      return campaignSelectObject.length > 0 ? campaignSelectObject[0].id : 0;
+    },
+
+    getStatusIdFromObjct() {
+      var stateSelectObject = this.stateItems.filter(
+        (element) => element.name === this.selectState
+      );
+      return stateSelectObject.length > 0 ? stateSelectObject[0].id : 0;
+    },
+
+    getOptionIdFromString() {
+      if (this.selectOption === "Importar local") {
+        return 1;
+      } else if(this.selectOption === "Importar local y tareas") {
+        return 2;
+      }
+    },
+
+    async uploadDataToServer(itemData, campaignId, optionId, statusId) {
       try {
         var uploadHeaderData = {
           account: parseInt(this.getUserData.idAccount, 10),
           iduser: this.getUserData.idUser,
-          option: 1,
+          option: optionId,
+          campaign: campaignId,
+          status: statusId,
           _route: itemData,
         };
+        console.log(uploadHeaderData);
         const response = await http.post(`/Branch/LoadTask`, uploadHeaderData);
         if (response.status === "error") {
           throw response;
@@ -628,17 +703,19 @@ export default {
       this.step = 3;
       setTimeout(async () => {
         this.setLoading(true);
-
+        var campaignId = this.getCampaingIdFromObject();
+        var optionId = this.getOptionIdFromString();
+        var statusId = this.getStatusIdFromObjct();
         for (var i = 0, len = this.uploadData.length; i < len; i++) {
-          await this.uploadDataToServer(this.uploadData[i]);
+          await this.uploadDataToServer(this.uploadData[i], campaignId, optionId, statusId );
         }
 
         if (this.errorList.length > 0) {
           await this.getErrorDocument();
         }
-
         this.setLoading(false);
         this.lockFinishOptions = false;
+        this.resumeComplete = true;
       }, 630);
     },
 
@@ -656,10 +733,11 @@ export default {
     clearImportData() {
       this.file = undefined;
       this.$refs.obs.reset();
-      this.selectState = "";
-      this.selectCampaign = "";
-      this.errorList = [];
+      this.selectState = null;
+      this.selectOption = "Importar local";
+      this.selectOption = this.errorList = [];
       this.successList = [];
+      this.resumeComplete = false;
     },
 
     finishImport() {
