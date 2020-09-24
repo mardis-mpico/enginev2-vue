@@ -1,5 +1,5 @@
 <template>
-  <v-app id="login" class="secondary">
+  <v-app id="login" class="accent">
     <v-main>
       <v-container fluid fill-height>
         <v-layout align-center justify-center>
@@ -31,7 +31,7 @@
                         name="email"
                         append-icon="mdi-email"
                         type="text"
-                        color="cyan"
+                        color="accent"
                         autocomplete="username"
                         :error-messages="errors"
                       ></v-text-field>
@@ -46,7 +46,7 @@
                         v-model="password"
                         label="Contraseña"
                         name="password"
-                        color="cyan"
+                        color="accent"
                         autocomplete="new-password"
                         :type="hidePassword ? 'password' : 'text'"
                         :append-icon="hidePassword ? 'mdi-eye-off' : 'mdi-eye'"
@@ -63,7 +63,7 @@
                     @click="handleSubmit(submit)"
                     :disabled="invalid || !validated"
                     block
-                    color="#8861AA"
+                    color="accent"
                     :loading="loading"
                     >Login</v-btn
                   >

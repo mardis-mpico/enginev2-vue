@@ -1,6 +1,6 @@
 import axios from "axios";
 import LocalStorageService from "./LocalStorageService";
-import router from "../router";
+//import router from "../router";
 import qs from "qs";
 
 // LocalstorageService
@@ -67,7 +67,7 @@ instance.interceptors.response.use(
     // return Promise.reject(error)
     if (error.response.status === 401) {
       localStorageService.clearToken();
-      router.replace("/Login");
+      window.location.reload();
       return parseError(error.response.data);
     } else if (error.response) {
       return parseError(error.response.data);

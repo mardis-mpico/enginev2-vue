@@ -12,8 +12,8 @@
         >
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="cyan darken-1" text @click="close('E')">Cancelar</v-btn>
-          <v-btn color="cyan darken-1" dark @click="acceptDelete"
+          <v-btn color="accent darken-1" text @click="close('E')">Cancelar</v-btn>
+          <v-btn color="accent darken-1" dark @click="acceptDelete"
             >Aceptar</v-btn
           >
         </v-card-actions>
@@ -21,24 +21,22 @@
     </v-dialog>
     <v-row>
       <v-col>
-        <h1 class="font-weight-light pr-3">Gestión de Mercaderistas</h1>
+        <h1 class="tText pr-3">Gestión de Mercaderistas</h1>
       </v-col>
       <v-col class="align-self-center mr-3">
         <v-row justify="end">
           <v-dialog v-model="dialog" persistent max-width="600px">
             <template v-slot:activator="{ on, attrs }">
               <v-btn
-                class="pa-0"
-                tile
-                outlined
-                color="error"
+                class="ma-2 text-capitalize"
+                medium
+                elevation="1"
+                color="#ffba69"
                 v-bind="attrs"
                 v-on="on"
               >
-                <v-col class="text-center">
-                  <v-icon>mdi-account-multiple-plus</v-icon>
-                  <h6>Nuevo</h6>
-                </v-col>
+                <v-icon left>mdi-account-multiple-plus</v-icon>
+                Nuevo
               </v-btn>
             </template>
             <ValidationObserver
@@ -66,7 +64,7 @@
                             name="nombre"
                             label="Nombre*"
                             prepend-icon="mdi-account"
-                            color="cyan"
+                            color="accent darken-1"
                             :error-messages="errors"
                           ></v-text-field>
                         </ValidationProvider>
@@ -83,7 +81,7 @@
                             label="Teléfono*"
                             prepend-icon="mdi-cellphone-android"
                             required
-                            color="cyan"
+                            color="accent darken-1"
                             :error-messages="errors"
                           ></v-text-field>
                         </ValidationProvider>
@@ -100,7 +98,7 @@
                             label="IMEI*"
                             prepend-icon="mdi-code-array"
                             required
-                            color="cyan"
+                            color="accent darken-1"
                             :error-messages="errors"
                           ></v-text-field>
                         </ValidationProvider>
@@ -115,7 +113,7 @@
                             v-model="editedItem.qsupport"
                             name="q-support"
                             label="Q-Support*"
-                            color="cyan"
+                            color="accent darken-1"
                             prepend-icon="mdi-barcode-scan"
                             required
                             :error-messages="errors"
@@ -135,7 +133,7 @@
                             label="Estado*"
                             prepend-icon="mdi-format-list-checks"
                             required
-                            color="cyan"
+                            color="accent darken-1"
                             :menu-props="{ top: false, offsetY: true }"
                             :error-messages="errors"
                           ></v-select>
@@ -153,7 +151,7 @@
                             label="Oficina*"
                             prepend-icon="mdi-office-building"
                             required
-                            color="cyan"
+                            color="accent darken-1"
                             :menu-props="{ top: false, offsetY: true }"
                             :error-messages="errors"
                           ></v-select>
@@ -165,7 +163,7 @@
                           label="Usuario Móvil*"
                           prepend-icon="mdi-shield-account"
                           required
-                          color="cyan"
+                          color="accent darken-1"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
@@ -175,7 +173,7 @@
                           type="text"
                           prepend-icon="mdi-lock"
                           required
-                          color="cyan"
+                          color="accent darken-1"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
@@ -193,7 +191,7 @@
                               label="Fecha de inicio"
                               prepend-icon="mdi-calendar"
                               readonly
-                              color="cyan"
+                              color="accent darken-1"
                               v-bind="attrs"
                               v-on="on"
                             ></v-text-field>
@@ -229,14 +227,11 @@
                                 label="Fecha de fin"
                                 prepend-icon="mdi-calendar"
                                 readonly
-                                color="cyan"
+                                color="accent darken-1"
                                 v-bind="attrs"
                                 v-on="on"
                                 :error-messages="errors"
                               ></v-text-field>
-                              <!--<h5 v-if="!errors.length" class="pt-0">
-                                (Fecha de fin es mayor a la fecha de inicio)
-                              </h5>-->
                             </ValidationProvider>
                           </template>
                           <v-date-picker
@@ -251,17 +246,10 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="cyan darken-1" text @click="close('P')"
+                  <v-btn color="accent darken-1" text @click="close('P')"
                     >Salir</v-btn
                   >
-                  <!--<v-btn
-                    color="blue darken-1"
-                    :dark="!invalid && validated"
-                    @click="handleSubmit(save)"
-                    :disabled="invalid || !validated"
-                    >Guardar</v-btn
-                  >-->
-                  <v-btn color="cyan darken-1" dark @click="handleSubmit(save)"
+                  <v-btn color="accent darken-1" dark @click="handleSubmit(save)"
                     >Guardar</v-btn
                   >
                 </v-card-actions>
@@ -273,10 +261,10 @@
     </v-row>
     <v-row class="justify-lg-space-between">
       <v-col class="pb-2">
-        <v-card class="pa-3">
+        <v-card class="rounded-xl pa-3" rounded="true">
           <v-row class="align-baseline">
             <v-col cols="5" lg="4">
-              <h3 class="font-weight-light">Encuestadores en ruta</h3>
+              <h3 class="tText pl-3">Encuestadores en ruta</h3>
             </v-col>
             <v-col class="text-top" lg="8">
               <v-text-field
@@ -285,7 +273,7 @@
                 append-icon="mdi-magnify"
                 placeholder="Buscar"
                 outlined
-                color="cyan"
+                color="primary darken-1"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -294,7 +282,7 @@
             :headers="headers"
             :items="pollsters"
             item-key="id"
-            class="elevation-1"
+            class="elevation-0"
             light
             :fixed-header="true"
             :search="searchQuery"
@@ -315,7 +303,9 @@
               </v-icon>
             </template>
             <template v-slot:no-data>
-              <v-btn color="cyan" dark @click="getPollsters">Reintentar</v-btn>
+              <v-btn color="primary darken-1" dark @click="getPollsters"
+                >Reintentar</v-btn
+              >
             </template>
           </v-data-table>
         </v-card>
@@ -617,6 +607,11 @@ export default {
 </script>
 
 <style>
+.tText {
+  color: #232365;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
 .v-data-table > .v-data-table__wrapper > table > thead > tr > th {
   font-weight: bold;
   color: black;
