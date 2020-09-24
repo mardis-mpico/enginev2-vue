@@ -393,14 +393,17 @@ import { http } from "@/plugins/axios";
 var fileReader = new FileReader();
 
 export default {
+  //VALIDATE COMPONENTS FOR INPUT VALUES
   components: {
     ValidationProvider,
     ValidationObserver,
   },
+  //GET NECESARY INFO FROM SERVER
   created() {
     this.getCampaignInServer();
     this.getStatesInServer();
   },
+  // SET DEFAULT VARIABLES TO MANAGE THE INFORMATION
   data() {
     return {
       step: 1,
@@ -445,6 +448,7 @@ export default {
       ],
     };
   },
+  // OBSERVER FOR FILE IMPORT DATA
   watch: {
     file(newVal) {
       if (newVal === undefined) {
@@ -454,15 +458,20 @@ export default {
     },
   },
   computed: {
+    //GET DATA FROM USER STORE
     ...mapGetters(["getUserData"]),
 
+    //CHECK IF THE FILE IS READY TO UPLOAD
     fileInput() {
       return this.file === undefined;
     },
+
+    //CHECK IF A STATE ROUTE IS CHOISED
     parsedState() {
       return this.uploadData === null;
     },
 
+    //TRANSFORM OPTION TO HIDE OR SHOW STATUS ROUTE
     computedOption: {
       get() {
         return this.selectOption;
@@ -471,6 +480,8 @@ export default {
         this.setOption(newValue);
       },
     },
+
+    //TRANSFORM THE SELECT CAMPAIGN INTO A VALID DATA
     computedCampaign: {
       get() {
         return this.selectCampaign === null ? "" : this.selectCampaign;
@@ -479,6 +490,8 @@ export default {
         this.selectCampaign = newValue;
       },
     },
+
+    //TRANSFORM ROUTE STATE TO VALID DATA
     computedState: {
       get() {
         return this.selectState === null ? "" : this.selectState;
@@ -492,6 +505,7 @@ export default {
     // REALIZA UN PROGRESS LOADIND A NIVEL DE RAÍZ
     ...mapMutations(["setLoading"]),
 
+    //SHOW OR HIDE ROUTE STATUS INPUT FIELD
     setOption(value) {
       if (value !== "Importar local") {
         this.selectState = "";
@@ -502,6 +516,7 @@ export default {
       this.selectOption = value;
     },
 
+    //GET CAMPAIGN INFORMATION FOR A CURRENT USER
     async getCampaignInServer() {
       try {
         var requestParams = {
@@ -525,6 +540,7 @@ export default {
       }
     },
 
+    //GET ROUTE STATES FOR A CURRENT USER
     async getStatesInServer() {
       try {
         var requestParams = {
@@ -544,6 +560,7 @@ export default {
       }
     },
 
+    //GET THE FILE INPUT AND TRANSFORM IN AN JSON ARRAY
     parseFile(result) {
       try {
         this.loadingData = true;
@@ -578,6 +595,7 @@ export default {
       }
     },
 
+    //PREPARE FILE TO BE PARSED AND UPLOAD
     readFile() {
       if (this.file) {
         fileReader.readAsBinaryString(this.file);
@@ -586,6 +604,7 @@ export default {
       }
     },
 
+    //SEARCH THE OBJECT ASSOCIATED TO THE CURRENT CAMPAIGN
     getCampaingIdFromObject() {
       var campaignSelectObject = this.campaignItems.filter(
         (element) => element.name === this.selectCampaign
@@ -594,6 +613,7 @@ export default {
       return campaignSelectObject.length > 0 ? campaignSelectObject[0].id : 0;
     },
 
+    //SEARCH THE OBJECT ASSOCIATED TO THE CURRENT STATE ROUTE
     getStatusIdFromObjct() {
       var stateSelectObject = this.stateItems.filter(
         (element) => element.name === this.selectState
@@ -601,14 +621,16 @@ export default {
       return stateSelectObject.length > 0 ? stateSelectObject[0].id : 0;
     },
 
+    //GET THE ID FROM THE CURRENT OPTION
     getOptionIdFromString() {
       if (this.selectOption === "Importar local") {
         return 1;
-      } else if(this.selectOption === "Importar local y tareas") {
+      } else if (this.selectOption === "Importar local y tareas") {
         return 2;
       }
     },
 
+    //UPLOAD EACH ARRAY ITEM FILE IMPORT TO SERVER
     async uploadDataToServer(itemData, campaignId, optionId, statusId) {
       try {
         var uploadHeaderData = {
@@ -634,6 +656,7 @@ export default {
       }
     },
 
+    //IF ERRORS TO UPLOAD FILE ITEMS, GET A DOCUMENT
     async getErrorDocument() {
       try {
         const response = await http.post(
@@ -648,6 +671,7 @@ export default {
       }
     },
 
+    //CHECK IF THE INPUT FILE GET THE CURRENT HEADERS
     checkValidDocument(data) {
       var json = JSON.parse(data);
 
@@ -680,6 +704,7 @@ export default {
       }
     },
 
+    //IF DUPLICATE DATA EXIST, THE FILE INPUT IS REJECTED
     checkForDuplicate(data) {
       var json = JSON.parse(data);
       var repeted = false;
@@ -698,6 +723,7 @@ export default {
       return repeted;
     },
 
+    //CALL A LOOP TO INSERT THE INFORMATION INTO SERVER
     insertData() {
       this.lockFinishOptions = true;
       this.step = 3;
@@ -707,7 +733,12 @@ export default {
         var optionId = this.getOptionIdFromString();
         var statusId = this.getStatusIdFromObjct();
         for (var i = 0, len = this.uploadData.length; i < len; i++) {
-          await this.uploadDataToServer(this.uploadData[i], campaignId, optionId, statusId );
+          await this.uploadDataToServer(
+            this.uploadData[i],
+            campaignId,
+            optionId,
+            statusId
+          );
         }
 
         if (this.errorList.length > 0) {
@@ -719,27 +750,32 @@ export default {
       }, 630);
     },
 
+    //CLEAN SECOND STEP CHOICES
     backToSecond() {
       this.step = 2;
       this.$refs.obs.reset();
-      this.selectCampaign = "";
+      this.selectCampaign = null;
+      this.selectState = null;
     },
 
+    //CLEAN ALL STEPS CHOISES AND GO BACK TO FIRST STEP
     resetImport() {
       this.clearImportData();
       this.step = 1;
     },
 
+    //CLEAN ALL IMPORT DATA
     clearImportData() {
       this.file = undefined;
       this.$refs.obs.reset();
       this.selectState = null;
       this.selectOption = "Importar local";
-      this.selectOption = this.errorList = [];
+      this.selectCampaign = null;
       this.successList = [];
       this.resumeComplete = false;
     },
 
+    //CLEAN ALL IMPORT DATA AND CLOSE DIALOG
     finishImport() {
       this.dialog = false;
       this.resetImport();
