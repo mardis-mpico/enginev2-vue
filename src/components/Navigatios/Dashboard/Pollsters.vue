@@ -91,7 +91,7 @@
                       <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
                         <ValidationProvider
                           name="imei"
-                          rules="required|numeric|digits:16"
+                          rules="required|numeric"
                           v-slot="{ errors }"
                         >
                           <v-text-field
