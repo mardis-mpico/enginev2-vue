@@ -265,6 +265,22 @@
                     <v-row>
                       <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
                         <ValidationProvider
+                          name="code"
+                          rules="required"
+                          v-slot="{ errors }"
+                        >
+                          <v-text-field
+                            v-model="editedItem.codigo"
+                            name="code"
+                            label="Código*"
+                            prepend-icon="mdi-barcode-scan"
+                            color="accent darken-1"
+                            :error-messages="errors"
+                          ></v-text-field>
+                        </ValidationProvider>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
+                        <ValidationProvider
                           name="sku"
                           rules="required"
                           v-slot="{ errors }"
@@ -273,7 +289,7 @@
                             v-model="editedItem.sku"
                             name="sku"
                             label="Sku*"
-                            prepend-icon="mdi-barcode-scan"
+                            prepend-icon="mdi-folder"
                             color="accent darken-1"
                             :error-messages="errors"
                           ></v-text-field>
@@ -499,7 +515,7 @@ export default {
       eraseDialog: false,
       editedItem: {
         id: 0,
-        codigo: "0",
+        codigo: "",
         sku: "",
         iva: "Si",
         impuesto_interno: "Si",
@@ -510,7 +526,7 @@ export default {
       },
       defaultItem: {
         id: 0,
-        codigo: "0",
+        codigo: "",
         sku: "",
         iva: "Si",
         impuesto_interno: "Si",
@@ -696,6 +712,7 @@ export default {
         this.editedItem["idaccount"] = parseInt(this.getUserData.idAccount, 10);
         this.editedItem["cantidad"] = Number(this.editedItem["cantidad"]);
         this.editedItem["precio"] = Number(this.editedItem["precio"]);
+        console.log(this.editedItem);
         var type = "";
         if (this.editedIndex > -1) {
           //EDITAR ITEM
