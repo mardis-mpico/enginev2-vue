@@ -1112,7 +1112,7 @@ export default {
       this.file = undefined;
       this.$refs.obs.reset();
       this.selectState = null;
-      this.selectOption = "Importar local";
+      this.selectOption = "Importar locales";
       this.selectCampaign = null;
       this.successList = [];
       this.resumeComplete = false;
