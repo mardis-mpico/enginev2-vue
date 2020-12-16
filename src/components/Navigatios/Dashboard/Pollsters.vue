@@ -12,7 +12,9 @@
         >
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="accent darken-1" text @click="close('E')">Cancelar</v-btn>
+          <v-btn color="accent darken-1" text @click="close('E')"
+            >Cancelar</v-btn
+          >
           <v-btn color="accent darken-1" dark @click="acceptDelete"
             >Aceptar</v-btn
           >
@@ -89,7 +91,7 @@
                       <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
                         <ValidationProvider
                           name="imei"
-                          rules="required|numeric|digits:16"
+                          rules="required|numeric"
                           v-slot="{ errors }"
                         >
                           <v-text-field
@@ -249,7 +251,10 @@
                   <v-btn color="accent darken-1" text @click="close('P')"
                     >Salir</v-btn
                   >
-                  <v-btn color="accent darken-1" dark @click="handleSubmit(save)"
+                  <v-btn
+                    color="accent darken-1"
+                    dark
+                    @click="handleSubmit(save)"
                     >Guardar</v-btn
                   >
                 </v-card-actions>
@@ -295,17 +300,15 @@
               <td>{{ getFormatedDate(item.fecha_Fin) }}</td>
             </template>
             <template v-slot:[`item.actions`]="{ item }">
-              <v-icon small class="mr-2" @click="editItem(item)">
+              <v-icon small color="accent" class="mr-2" @click="editItem(item)">
                 mdi-pencil
               </v-icon>
-              <v-icon small @click="deleteItem(item)">
+              <v-icon small color="error" @click="deleteItem(item)">
                 mdi-delete
               </v-icon>
             </template>
             <template v-slot:no-data>
-              <v-btn color="primary darken-1" dark @click="getPollsters"
-                >Reintentar</v-btn
-              >
+              <v-btn color="accent" dark @click="getPollsters">Reintentar</v-btn>
             </template>
           </v-data-table>
         </v-card>
