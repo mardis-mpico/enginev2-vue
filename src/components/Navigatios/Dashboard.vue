@@ -975,7 +975,30 @@ export default {
     },
 
     //UPLOAD EACH ARRAY ITEM FILE IMPORT TO SERVER
-    async uploadDataToServer(itemData, campaignId, optionId, statusId) {
+      async uploadDataToServer(itemData, campaignId, optionId, statusId) {
+
+          itemData.Apellidos = itemData.Apellidos.toString();
+          itemData.CLUSTER = itemData.CLUSTER.toString();
+          itemData.Canton = itemData.Canton.toString();
+          itemData.Celular = itemData.Celular.toString();
+          itemData.Codigo_Encuesta = itemData.Codigo_Encuesta.toString();
+          itemData.Cédula = itemData.Cédula.toString();
+          itemData.Dirección = itemData.Dirección.toString();
+          itemData.Estado = itemData.Estado.toString();
+          itemData.IMEI = itemData.IMEI.toString();
+          itemData.Latitud = itemData.Latitud.toString();
+          itemData.Longitud = itemData.Longitud.toString();
+          itemData.Mail = itemData.Mail.toString();
+          itemData.Nombres = itemData.Nombres.toString();
+          itemData.PT_indice = itemData.PT_indice.toString();
+          itemData.Parroquia = itemData.Parroquia.toString();
+          itemData.Provincia = itemData.Provincia.toString();
+          itemData.RUTA = itemData.RUTA.toString();
+          itemData.Referencia = itemData.Referencia.toString();
+          itemData.Telefono = itemData.Telefono.toString();
+          itemData.Tipo = itemData.Tipo.toString();
+          itemData.local = itemData.local.toString();
+
       try {
         var uploadHeaderData = {
           account: parseInt(this.getUserData.idAccount, 10),
