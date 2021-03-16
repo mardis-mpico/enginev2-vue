@@ -14,6 +14,7 @@
               color="success"
               href="../../assets/cargaTareas.xlsx"
               download="cargaTareas.xlsx"
+              v-if="banderaxml"
             >
               <v-icon left>mdi-file-excel</v-icon>
               Tareas
@@ -26,13 +27,14 @@
               color="success"
               href="../../assets/cargaLocales.xlsx"
               download="cargaLocales.xlsx"
+              v-if="banderaxml"
             >
               <v-icon left>mdi-file-excel</v-icon>
               Local
             </v-btn>
           </v-card-title>
           <v-card-subtitle>
-            <v-row class="pl-3 pr-5 pt-2 mr-5">
+            <v-row class="pl-3 pr-5 pt-2 mr-5" v-if="banderaxml">
               <h5 class="tText">Productos</h5>
               <v-spacer />
               <h5 class="tText">Formatos</h5>
@@ -61,12 +63,13 @@
                   <v-card class="mb-2 elevation-0" height="300px">
                     <v-card-text>
                       <v-file-input
+                        id="archivo"
                         v-model="file"
                         color="deep-purple accent-4"
                         counter
                         label="Archivo"
                         placeholder="Seleccione archivo a subir"
-                        accept=".xls,.xlsx"
+                        accept=".xls,.xlsx,.xml"
                         prepend-icon=""
                         outlined
                         height="120px"
@@ -131,6 +134,7 @@
                             color="accent darken-1"
                             :menu-props="{ top: false, offsetY: true }"
                             :error-messages="errors"
+                            v-if="banderaxml"
                           ></v-select>
                         </ValidationProvider>
 
@@ -143,6 +147,7 @@
                           outlined
                           :dense="true"
                           :menu-props="{ top: false, offsetY: true }"
+                          v-if="banderaxml"
                         ></v-select>
                         <ValidationProvider
                           name="estado"
@@ -162,8 +167,28 @@
                             color="accent darken-1"
                             :menu-props="{ top: false, offsetY: true }"
                             :error-messages="errors"
+                            v-if="banderaxml"
                           ></v-select>
                         </ValidationProvider>
+                        <v-flex v-if="!banderaxml">
+                          ({{itemsFactura}}) Total de items en factura
+                        </v-flex>
+                        <v-progress-linear
+                          v-model="knowledge"
+                          buffer-value="100"
+                          height="25"
+                          v-if="!banderaxml"
+                        >
+                          <strong>{{ Math.ceil(knowledge) }}%</strong>
+                        </v-progress-linear>
+                              <v-btn
+                          class="ma-2"
+                          color="rgb(117, 49, 140)"
+                          v-if="!banderaxml"
+                          @click="verificar"
+                        >
+                          Iniciar verificación
+                        </v-btn>
                       </v-card-text>
                       <v-card-actions class="justify-center">
                         <v-btn
@@ -184,6 +209,7 @@
                       </v-card-actions>
                     </v-card>
                   </ValidationObserver>
+                  
                 </v-stepper-content>
 
                 <v-stepper-content step="3">
@@ -298,6 +324,17 @@
       </v-col>
       <v-col class="align-self-center">
         <v-row class="justify-end">
+          <v-btn
+            class="ma-2 text-capitalize"
+            medium
+            elevation="1"
+            light
+            color="secondary-text"
+            @click="showxml"
+          >
+            <v-icon left>mdi-file-excel</v-icon>
+            Importar Facturas
+          </v-btn>
           <v-btn
             class="ma-2 text-capitalize"
             medium
@@ -557,6 +594,10 @@ export default {
       uploadData: null,
       selectedRouteData: null,
       loadingPollstersInRoute: false,
+      banderaxml: true,
+      knowledge: 0,
+      itemsFactura: 0,
+      itemsFacturaProcesar:null,
       headersRoute: [
         {
           text: "RUTA",
@@ -671,6 +712,12 @@ export default {
     // REALIZA UN PROGRESS LOADIND A NIVEL DE RAÍZ
     ...mapMutations(["setLoading"]),
 
+    //Mostrar Dialogo subir xml
+    showxml() {
+      this.dialog = true;
+      this.banderaxml = false;
+    },
+
     //SHOW OR HIDE ROUTE STATUS INPUT FIELD
     setOption(value) {
       if (value !== "Importar local") {
@@ -751,12 +798,16 @@ export default {
     //GET THE FILE INPUT AND TRANSFORM IN AN JSON ARRAY
     parseFile(result) {
       try {
+        console.log(result)
         this.loadingData = true;
         this.uploadData = null;
         var data = result;
+        console.log("parseFile")
         var workbook = XLSX.read(data, {
           type: "binary",
         });
+        console.log("workbook")
+        console.log(workbook)
         let rowObject = XLSX.utils.sheet_to_row_object_array(
           workbook.Sheets["Formato"]
         );
@@ -783,12 +834,83 @@ export default {
       }
     },
 
+    parseFilexml(result) {
+      try {
+        // const utf8 = require('utf8');
+        console.log('result')
+        console.log(result)
+
+        this.loadingData = true;
+        
+        this.step1xml(result);
+
+        this.lockUp = true;
+        this.uploadData = true;
+        this.loadingData = false;
+
+      } catch (e) {
+        console.log(e);
+      }
+    },
+
+    //GET THE CURRENT POLLSTERS IN A ROUTE, BY CLICKING ONE
+    async step1xml(file) {
+      try {
+        this.setLoading(true);
+
+        var requestParams = {
+          IdAccount: parseInt(this.getUserData.idAccount, 10),
+          urlfile: file,
+        };
+        const response = await http.post(
+          `/Task/getFactura`,
+          requestParams
+        );
+
+        if (response.status === "Ok") {
+          console.log("OK")
+          console.log(response)
+          this.itemsFactura=response.data.listbills.length;
+          this.itemsFacturaProcesar = response.data;
+          this.knowledge = 0;
+        } else {
+          throw response.messege;
+        }
+      } catch (e) {
+        alert(e);
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    verificar(){
+      console.log(this.itemsFacturaProcesar)
+      var parte = 100/this.itemsFactura
+      console.log("parte")
+      console.log(parte.toFixed(2))
+      this.itemsFacturaProcesar.listbills.forEach(element => {
+        console.log(element);
+        setTimeout(()=>{this.knowledge = this.knowledge + parseFloat(parte.toFixed(2))
+        if(this.knowledge>100){this.knowledge=100}
+        this.invalid = true; this.validated = true},3000)
+      });
+    },
+
     //PREPARE FILE TO BE PARSED AND UPLOAD
     readFile() {
       if (this.file) {
+        console.log("readFile");
+        const utf8 = require('utf8');
         fileReader.readAsBinaryString(this.file);
-        fileReader.onload = (e) => this.parseFile(e.target.result);
-        fileReader.onerror = () => alert("Error al cargar el archivo");
+        console.log(fileReader);
+        
+        if(this.banderaxml){
+          fileReader.onload = (e) => this.parseFile(e.target.result);
+          fileReader.onerror = () => alert("Error al cargar el archivo");
+        }else{
+          fileReader.onload = (e) => this.parseFilexml(utf8.decode(e.target.result));
+          fileReader.onerror = () => alert("Error al cargar el archivo");
+        }
       }
     },
 
@@ -1118,6 +1240,8 @@ export default {
 
     //CLEAN SECOND STEP CHOICES
     backToSecond() {
+      console.log("backToSecond");
+      console.log(this.file);
       this.step = 2;
       this.$refs.obs.reset();
       this.selectCampaign = null;
@@ -1144,6 +1268,7 @@ export default {
     //CLEAN ALL IMPORT DATA AND CLOSE DIALOG
     finishImport() {
       this.dialog = false;
+      this.banderaxml = true;
       this.resetImport();
     },
   },
