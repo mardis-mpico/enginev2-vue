@@ -472,7 +472,7 @@ export default {
           sortable: false,
           value: "codigo",
         },
-        { text: "SKU", value: "sku", align: "start", sortable: false },
+        { text: "SKU", value: "sku", align: "start", sortable: true },
         {
           text: "IVA",
           value: "iva",
@@ -500,6 +500,12 @@ export default {
         {
           text: "PRECIO",
           value: "precio",
+          sortable: true,
+          align: "center",
+        },
+        {
+          text: "ESTADO",
+          value: "estado",
           sortable: true,
           align: "center",
         },
