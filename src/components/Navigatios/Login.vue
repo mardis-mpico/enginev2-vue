@@ -102,7 +102,7 @@
     </v-main>
     <footer class="layout align-end justify-center">
       <p class="text-center footerText">
-        Copyright © 2017-2020 CHARIOT Todos los derechos reservados |
+        Copyright © 2017-2021 CHARIOT Todos los derechos reservados |
         Desarrollado por DI
       </p>
     </footer>
