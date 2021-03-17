@@ -2,17 +2,19 @@
   <div class="pb-15">
     <v-dialog v-model="eraseDialog" persistent max-width="290">
       <v-card>
-        <v-card-title class="headline">Eliminar Producto</v-card-title>
+        <v-card-title class="headline">{{this.MessageCambioEstad}}</v-card-title>
         <v-card-text
-          >¿Está seguro de eliminar el producto? Una vez eliminado, no se podrá
-          deshacer.</v-card-text
+          >¿Está seguro de cambiar de estado al producto?.</v-card-text
         >
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="deep-purple darken-4" text @click="close('E')"
             >Cancelar</v-btn
           >
-          <v-btn color="deep-purple darken-4" dark @click="acceptDelete"
+          <v-btn color="deep-purple darken-4" v-if="this.MessageCambioEstad=='Desactivar Producto'" dark @click="acceptDelete"
+            >Aceptar</v-btn
+          >
+           <v-btn color="deep-purple darken-4" v-if="this.MessageCambioEstad=='Activar Producto'" dark @click="acceptActive"
             >Aceptar</v-btn
           >
         </v-card-actions>
@@ -415,8 +417,11 @@
               <v-icon small color="accent" class="mr-2" @click="editItem(item)">
                 mdi-pencil
               </v-icon>
-              <v-icon small color="error" @click="deleteItem(item)">
-                mdi-delete
+              <v-icon small color="success" v-if="item.estado=='ACTIVO'" @click="deleteItem(item)">
+                mdi-marker-check
+              </v-icon>
+               <v-icon  color="error" v-if="item.estado=='INACTIVO'" @click="ActivarItem(item)">
+                mdi-bookmark-remove
               </v-icon>
             </template>
             <template v-slot:no-data>
@@ -465,6 +470,7 @@ export default {
       errorDownloadLink: "",
       file: undefined,
       uploadData: null,
+      MessageCambioEstad:"Eliminar Producto",
       headersProduct: [
         {
           text: "CÓDIGO",
@@ -503,12 +509,7 @@ export default {
           sortable: true,
           align: "center",
         },
-        {
-          text: "ESTADO",
-          value: "estado",
-          sortable: true,
-          align: "center",
-        },
+   
         {
           text: "ACCIONES",
           value: "actions",
@@ -690,9 +691,15 @@ export default {
     deleteItem(item) {
       this.editedIndex = this.productItems.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      this.MessageCambioEstad="Desactivar Producto"
       this.eraseDialog = true;
     },
-
+      ActivarItem(item) {
+      this.editedIndex = this.productItems.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.MessageCambioEstad="Activar Producto"
+      this.eraseDialog = true;
+    },
     //SET DEFAULT ITEMS TO EMPTY DATA BY TYPE
     close(type) {
       if (type === "P") {
@@ -744,10 +751,13 @@ export default {
     // ONLY DISABLE THE CURRENT PRODUCT FROM DATABASE
     async acceptDelete() {
       try {
+
         this.setLoading(true);
         this.loadingProducts = true;
+
+        console.log(this.productItems);
         await http.post(`/Order/DeleteProduct?idproduct=${this.editedItem.id}`);
-        this.productItems.splice(this.editedIndex, 1);
+        this.productItems.find(x=>x.id==this.editedItem.id).estado='INACTIVO';
       } catch (e) {
         alert(e);
       } finally {
@@ -756,7 +766,21 @@ export default {
         this.setLoading(false);
       }
     },
-
+ // ONLY DISABLE THE CURRENT PRODUCT FROM DATABASE
+    async acceptActive() {
+      try {
+        this.setLoading(true);
+        this.loadingProducts = true;
+        await http.post(`/Order/ActiveProduct?idproduct=${this.editedItem.id}`);
+         this.productItems.find(x=>x.id==this.editedItem.id).estado='ACTIVO';
+      } catch (e) {
+        alert(e);
+      } finally {
+        this.close("E");
+        this.loadingProducts = false;
+        this.setLoading(false);
+      }
+    },
     //PREPARE FILE TO BE PARSED AND UPLOAD
     readFile() {
       if (this.file) {
