@@ -327,6 +327,16 @@
           <v-btn
             class="ma-2 text-capitalize"
             medium
+            to="DashBoard/Branch"
+            elevation="1"
+            color="#ffba69"
+          >
+            <v-icon left>mdi-home</v-icon>
+            Administracion de locales
+          </v-btn>
+          <v-btn
+            class="ma-2 text-capitalize"
+            medium
             elevation="1"
             light
             color="secondary-text"

@@ -1,9 +1,16 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import VuexPersistence from "vuex-persist";
+import { LMap, LTileLayer, LMarker } from 'vue2-leaflet';
+import 'leaflet/dist/leaflet.css';
+import {LDrawToolbar} from 'vue2-leaflet-draw-toolbar';
+// ...
 
 Vue.use(Vuex);
-
+Vue.component('l-map', LMap);
+Vue.component('l-tile-layer', LTileLayer);
+Vue.component('l-marker', LMarker);
+Vue.component('l-draw-toolbar', LDrawToolbar);
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
   modules: ["auth"],

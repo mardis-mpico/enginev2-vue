@@ -28,6 +28,10 @@ const routes = [
         component: () => import("../components/Navigatios/Dashboard/Pollsters.vue"),
       },
       {
+        path: "DashBoard/Branch",
+        component: () => import("../components/Navigatios/Dashboard/Branch.vue"),
+      },
+      {
         path: "Campaign",
         component: () => import("../components/Navigatios/Campaigns.vue"),
       },

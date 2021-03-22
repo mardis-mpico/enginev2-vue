@@ -128,7 +128,7 @@
                             <v-progress-linear
                               v-if="uploadData !== null"
                               :active="true"
-                              :background-opacity="0.3"
+                              :background-opacity="0.3" 
                               :buffer-value="100"
                               :height="15"
                               :value="
