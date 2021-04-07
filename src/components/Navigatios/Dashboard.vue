@@ -174,12 +174,17 @@
                           ({{itemsFactura}}) Total de items en factura
                         </v-flex>
                         <v-progress-linear
-                          v-model="knowledge"
                           buffer-value="100"
                           height="25"
+                          :active="true"
                           v-if="!banderaxml"
+                          :background-opacity="0.3"
+                          color="blue"
+                          
                         >
-                          <strong>{{ Math.ceil(knowledge) }}%</strong>
+                          <template>
+                            <strong>{{ Math.ceil(knowledge) }}%</strong>
+                          </template>
                         </v-progress-linear>
                               <v-btn
                           class="ma-2"
@@ -187,7 +192,7 @@
                           v-if="!banderaxml"
                           @click="verificar"
                         >
-                          Iniciar verificación
+                          Iniciar Verificación
                         </v-btn>
                       </v-card-text>
                       <v-card-actions class="justify-center">
@@ -201,7 +206,7 @@
                           class="text-capitalize"
                           color="deep-purple accent-4"
                           :dark="!invalid && validated"
-                          @click="insertData"
+                          @click="step3"
                           :disabled="invalid || !validated"
                         >
                           Continuar
@@ -273,6 +278,7 @@
                               :href="errorDownloadLink"
                               download="Acme Documentation (ver. 2.0.1).txt"
                               :disabled="errorList.length <= 0"
+                              v-if="banderaxml"
                             >
                               <v-icon left>mdi-file-excel</v-icon>
                               Errores
@@ -608,6 +614,7 @@ export default {
       knowledge: 0,
       itemsFactura: 0,
       itemsFacturaProcesar:null,
+      erroresFactura:[],
       headersRoute: [
         {
           text: "RUTA",
@@ -894,16 +901,102 @@ export default {
     },
 
     verificar(){
-      console.log(this.itemsFacturaProcesar)
       var parte = 100/this.itemsFactura
-      console.log("parte")
-      console.log(parte.toFixed(2))
+      let listaError = ""
+      let contador = 1
       this.itemsFacturaProcesar.listbills.forEach(element => {
-        console.log(element);
-        setTimeout(()=>{this.knowledge = this.knowledge + parseFloat(parte.toFixed(2))
-        if(this.knowledge>100){this.knowledge=100}
-        this.invalid = true; this.validated = true},3000)
+        this.erroresFactura = [];
+        this.step2xml(element).then(res=>{
+          if(res.status === "Ok"){
+            this.knowledge = this.knowledge + (parseFloat(parte.toFixed(2)) * res.data);
+            if(this.knowledge>=100){ 
+              this.knowledge=100;
+              this.$refs.obs.flags.invalid = false;
+              this.$refs.obs.flags.validated = true; 
+            }
+          }else{
+            this.erroresFactura.push(res);
+            listaError = listaError + res.data.data.code + ", "
+          }
+          contador = contador + 1
+          if (this.erroresFactura.length>0 && contador == this.itemsFacturaProcesar.listbills.length){
+            alert("Los siguientes productos no estan registrados: " + listaError)
+            this.$refs.obs.flags.invalid = false;
+            this.$refs.obs.flags.validated = true; 
+          }
+        });
       });
+      this.successList = [];
+      this.errorList = [];
+      console.log('erroresFactura')
+      console.log(this.erroresFactura)
+    },
+
+    verificarSave(){
+      this.itemsFacturaProcesar.listbills.forEach(element => {
+
+        this.step2xmlSave(element).then(res=>{
+          if(res.status === "Ok"){
+            this.successList.push(res)
+          }else{
+            this.errorList.push(res)
+          }
+        });
+      });
+      this.step = 3;
+      this.lockFinishOptions = false;
+    },
+
+    async step2xml(Detallefactura) {
+      try {
+        this.setLoading(true);
+        var requestParams = {
+          IdAccount: parseInt(this.getUserData.idAccount, 10),
+          urlfile: JSON.stringify(Detallefactura),
+        };
+        const response = await http.post(
+          `/Task/LoadProduct`,
+          requestParams
+        );
+
+        if (response.status === "Ok") {
+          this.setLoading(false);
+          return response
+        } else {
+          // throw response.messege;
+          this.setLoading(false);
+          return response
+        }
+      } catch (e) {
+        alert(e);
+        this.setLoading(false);
+      } 
+    },
+
+    async step2xmlSave(Detallefactura) {
+      try {
+        this.setLoading(true);
+        var requestParams = {
+          IdAccount: parseInt(this.getUserData.idAccount, 10),
+          urlfile: JSON.stringify(Detallefactura),
+        };
+        const response = await http.post(
+          `/Task/SaveProduct`,
+          requestParams
+        );
+
+        if (response.status === "Ok") {
+          this.setLoading(false);
+          return response
+        } else {
+          // throw response.messege;
+          this.setLoading(false);
+          return response
+        }
+      } catch (e) {
+        alert(e);
+        this.setLoading(false);
+      } 
     },
 
     //PREPARE FILE TO BE PARSED AND UPLOAD
@@ -1224,6 +1317,15 @@ export default {
         if (repeted) break;
       }
       return repeted;
+    },
+
+    step3(){
+      if(this.banderaxml){
+        this.insertData();
+      }else{
+        this.verificarSave();
+        console.log(this.errorList)
+      }
     },
 
     //CALL A LOOP TO INSERT THE INFORMATION INTO SERVER
