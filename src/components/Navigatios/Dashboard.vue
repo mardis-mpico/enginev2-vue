@@ -921,8 +921,6 @@ export default {
           contador = contador + 1
           if (this.erroresFactura.length>0 && contador == this.itemsFacturaProcesar.listbills.length){
             alert("Los siguientes productos no estan registrados: " + listaError)
-            this.$refs.obs.flags.invalid = false;
-            this.$refs.obs.flags.validated = true; 
           }
         });
       });
@@ -932,19 +930,18 @@ export default {
       console.log(this.erroresFactura)
     },
 
-    verificarSave(){
-      this.itemsFacturaProcesar.listbills.forEach(element => {
-
-        this.step2xmlSave(element).then(res=>{
+    async verificarSave(){
+      this.step = 3;
+      this.lockFinishOptions = false;
+      for(let i=0;i<this.itemsFacturaProcesar.listbills.length;i++){
+        let element = this.itemsFacturaProcesar.listbills[i];
+        let res = await this.step2xmlSave(element)
           if(res.status === "Ok"){
             this.successList.push(res)
           }else{
             this.errorList.push(res)
           }
-        });
-      });
-      this.step = 3;
-      this.lockFinishOptions = false;
+      } 
     },
 
     async step2xml(Detallefactura) {
@@ -973,14 +970,14 @@ export default {
       } 
     },
 
-    async step2xmlSave(Detallefactura) {
+    step2xmlSave(Detallefactura) {
       try {
         this.setLoading(true);
         var requestParams = {
           IdAccount: parseInt(this.getUserData.idAccount, 10),
           urlfile: JSON.stringify(Detallefactura),
         };
-        const response = await http.post(
+        const response = http.post(
           `/Task/SaveProduct`,
           requestParams
         );
