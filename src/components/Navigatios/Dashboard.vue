@@ -170,30 +170,35 @@
                             v-if="banderaxml"
                           ></v-select>
                         </ValidationProvider>
-                        <v-flex v-if="!banderaxml">
-                          ({{itemsFactura}}) Total de items en factura
-                        </v-flex>
-                        <v-progress-linear
-                          buffer-value="100"
-                          height="25"
-                          :active="true"
-                          v-if="!banderaxml"
-                          :background-opacity="0.3"
-                          color="blue"
-                          
-                        >
-                          <template>
-                            <strong>{{ Math.ceil(knowledge) }}%</strong>
-                          </template>
-                        </v-progress-linear>
-                              <v-btn
-                          class="ma-2"
-                          color="rgb(117, 49, 140)"
-                          v-if="!banderaxml"
-                          @click="verificar"
-                        >
-                          Iniciar Verificación
-                        </v-btn>
+                        <v-row v-if="!banderaxml">
+                          <v-col cols = "12" lg = "12" md = "12" sm = "12">
+                            ({{itemsFactura}}) Total de items en factura
+                            <v-progress-linear
+                              buffer-value="100"
+                              height="25"
+                              :active="true"
+                              v-if="!banderaxml"
+                              :background-opacity="0.3"
+                              color="blue"
+                            >
+                              <template>
+                                <strong>{{ Math.ceil(knowledge) }}%</strong>
+                              </template>
+                            </v-progress-linear>
+                          </v-col>
+                          <v-col cols = "12" lg = "12" md = "12" sm = "12" 
+                            style="text-align: center">
+                            <v-btn
+                              class="text-capitalize"
+                              color="deep-purple accent-4"
+                              :dark="true"
+                              v-if="!banderaxml"
+                              @click="verificar"
+                            >
+                              Iniciar Verificación
+                            </v-btn>
+                          </v-col>
+                        </v-row>
                       </v-card-text>
                       <v-card-actions class="justify-center">
                         <v-btn
@@ -901,26 +906,41 @@ export default {
     },
 
     verificar(){
-      var parte = 100/this.itemsFactura
-      let listaError = ""
-      let contador = 1
+      this.knowledge = 0;
+      var parte = 100/this.itemsFactura;
+      let listaError = "";
+      let contador = 1;
+      var duplicado = false;
+
       this.itemsFacturaProcesar.listbills.forEach(element => {
         this.erroresFactura = [];
         this.step2xml(element).then(res=>{
+
+          if(res.status === "Duplicado"){
+            duplicado = true;
+          }
+          
           if(res.status === "Ok"){
             this.knowledge = this.knowledge + (parseFloat(parte.toFixed(2)) * res.data);
             if(this.knowledge>=100){ 
-              this.knowledge=100;
-              this.$refs.obs.flags.invalid = false;
-              this.$refs.obs.flags.validated = true; 
+              this.knowledge=100; 
             }
           }else{
             this.erroresFactura.push(res);
             listaError = listaError + res.data.data.code + ", "
           }
           contador = contador + 1
-          if (this.erroresFactura.length>0 && contador == this.itemsFacturaProcesar.listbills.length){
-            alert("Los siguientes productos no estan registrados: " + listaError)
+
+          if(contador == this.itemsFacturaProcesar.listbills.length){
+            if (duplicado){
+              alert("La factura ya se encuentra ingresada en el sistema.")
+            }
+            else if(this.erroresFactura.length>0){
+              alert("Los siguientes productos no estan registrados: " + listaError)
+            }else{
+              this.$refs.obs.flags.invalid = false;
+              this.$refs.obs.flags.validated = true;
+            }
           }
         });
       });
@@ -933,14 +953,68 @@ export default {
     async verificarSave(){
       this.step = 3;
       this.lockFinishOptions = false;
+      console.log(this.itemsFacturaProcesar);
+
+      let fact = "0";
+      let factList = [];
+      this.itemsFacturaProcesar.listbills;
+
       for(let i=0;i<this.itemsFacturaProcesar.listbills.length;i++){
-        let element = this.itemsFacturaProcesar.listbills[i];
-        let res = await this.step2xmlSave(element)
-          if(res.status === "Ok"){
-            this.successList.push(res)
-          }else{
-            this.errorList.push(res)
+        fact = this.itemsFacturaProcesar.listbills[i].numFact;
+        if (factList.find(f=>f.numFact === fact) == undefined){
+          factList.push(this.itemsFacturaProcesar.listbills[i]);
+        }
+      }
+
+      console.log(factList);
+
+
+      for(let i=0;i<factList.length;i++){
+        let element = factList[i];
+        let res = await this.step2Factura(element)
+
+        if(res.status === "Ok"){
+          for(let i=0;i<this.itemsFacturaProcesar.listbills.length;i++){
+            let element = this.itemsFacturaProcesar.listbills[i];
+            this.step2xmlSave(element).then(
+              res=>{
+                if(res.status === "Ok"){
+                  this.successList.push(res)
+                }else{
+                  this.errorList.push(res)
+                }
+              }
+            )
           }
+          console.log("LISTA DE ERRORES DE CARGA ---->")
+          console.log(this.errorList)
+        }
+      } 
+    },
+
+    async step2Factura(factura) {
+      try {
+        this.setLoading(true);
+        var requestParams = {
+          IdAccount: parseInt(this.getUserData.idAccount, 10),
+          urlfile: JSON.stringify(factura),
+        };
+        const response = await http.post(
+          `/Task/LoadProductFactura`,
+          requestParams
+        );
+
+        if (response.status === "Ok") {
+          this.setLoading(false);
+          return response
+        } else {
+          // throw response.messege;
+          this.setLoading(false);
+          return response
+        }
+      } catch (e) {
+        alert(e);
+        this.setLoading(false);
       } 
     },
 
