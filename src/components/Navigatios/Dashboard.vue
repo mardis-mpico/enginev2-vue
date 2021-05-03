@@ -972,7 +972,7 @@ export default {
       for(let i=0;i<factList.length;i++){
         let element = factList[i];
         let res = await this.step2Factura(element)
-
+        var conta = 1
         if(res.status === "Ok"){
           for(let i=0;i<this.itemsFacturaProcesar.listbills.length;i++){
             let element = this.itemsFacturaProcesar.listbills[i];
@@ -983,11 +983,24 @@ export default {
                 }else{
                   this.errorList.push(res)
                 }
+                if (conta == this.itemsFacturaProcesar.listbills.length){
+                  if(this.errorList.length == 0){
+                    var mensaje = "La factura se cargo Exitosamente "+conta+" de "+this.itemsFacturaProcesar.listbills.length;
+                    alert(mensaje)
+                  }
+                }
+                conta++;
               }
             )
+
+            
           }
+          
+
           console.log("LISTA DE ERRORES DE CARGA ---->")
           console.log(this.errorList)
+          
+
         }
       } 
     },
