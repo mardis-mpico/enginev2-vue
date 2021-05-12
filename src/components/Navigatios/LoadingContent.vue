@@ -20,10 +20,11 @@ export default {
   },
   methods: {
     async getRoutes() {
+
       try {
         const response = await http.post(
-          //`/Login/GetMenubyProfile?idprofile=${this.getUserData.idProfile}`
-          `/Login/GetMenubyProfile?idprofile=D6BD9623-89AD-481B-8797-0805EDF0AD69`
+        // `/Login/GetMenubyProfile?idprofile=${this.getUserData.idProfile}`
+       `/Login/GetMenubyProfile?idprofile=D6BD9623-89AD-481B-8797-0805EDF0AD69`
         );
         this.$emit(`Routes`, response);
       } catch (e) {

@@ -17,21 +17,9 @@
               v-if="banderaxml"
             >
               <v-icon left>mdi-file-excel</v-icon>
-              Tareas
+              Formato Ingreso
             </v-btn>
-            <v-btn
-              class="pr-0 pl-0 ml-4 text-capitalize"
-              text
-              medium
-              elevation="0"
-              color="success"
-              href="../../assets/cargaLocales.xlsx"
-              download="cargaLocales.xlsx"
-              v-if="banderaxml"
-            >
-              <v-icon left>mdi-file-excel</v-icon>
-              Local
-            </v-btn>
+     
           </v-card-title>
           <v-card-subtitle>
             <v-row class="pl-3 pr-5 pt-2 mr-5" v-if="banderaxml">
@@ -125,51 +113,20 @@
                         >
                           <v-select
                             v-model="computedCampaign"
-                            name="campaña"
+                            name="Tipo de Ingreso"
                             :items="campaignItems"
-                            label="Campañas"
+                            label="Tipo de Ingreso"
                             outlined
                             item-text="name"
                             :dense="true"
                             color="accent darken-1"
                             :menu-props="{ top: false, offsetY: true }"
                             :error-messages="errors"
-                            v-if="banderaxml"
+                         
                           ></v-select>
                         </ValidationProvider>
 
-                        <v-select
-                          class="pt-1"
-                          v-model="computedOption"
-                          :items="optionItems"
-                          label="Opción"
-                          color="accent darken-1"
-                          outlined
-                          :dense="true"
-                          :menu-props="{ top: false, offsetY: true }"
-                          v-if="banderaxml"
-                        ></v-select>
-                        <ValidationProvider
-                          name="estado"
-                          rules="required"
-                          v-slot="{ errors }"
-                          v-if="showState"
-                        >
-                          <v-select
-                            class="pt-1"
-                            v-model="computedState"
-                            name="estado"
-                            :items="stateItems"
-                            label="Estado de tareas"
-                            outlined
-                            item-text="name"
-                            :dense="true"
-                            color="accent darken-1"
-                            :menu-props="{ top: false, offsetY: true }"
-                            :error-messages="errors"
-                            v-if="banderaxml"
-                          ></v-select>
-                        </ValidationProvider>
+                     
                         <v-row v-if="!banderaxml">
                           <v-col cols = "12" lg = "12" md = "12" sm = "12">
                             ({{itemsFactura}}) Total de items en factura
@@ -331,31 +288,11 @@
 
     <v-row>
       <v-col>
-        <h1 class="tText">Control Rutas </h1>
+        <h1 class="tText">Ingreso de Stock en Camiones </h1>
       </v-col>
       <v-col class="align-self-center">
         <v-row class="justify-end">
-          <v-btn
-            class="ma-2 text-capitalize"
-            medium
-            to="DashBoard/Branch"
-            elevation="1"
-            color="#ffba69"
-          >
-            <v-icon left>mdi-home</v-icon>
-            Administracion de locales
-          </v-btn>
-          <v-btn
-            class="ma-2 text-capitalize"
-            medium
-            elevation="1"
-            light
-            color="secondary-text"
-            @click="showxml"
-          >
-            <v-icon left>mdi-file-excel</v-icon>
-            Importar Facturas
-          </v-btn>
+
           <v-btn
             class="ma-2 text-capitalize"
             medium
@@ -367,16 +304,7 @@
             <v-icon left>mdi-file-excel</v-icon>
             Importar
           </v-btn>
-          <v-btn
-            class="ma-2 text-capitalize"
-            medium
-            to="DashBoard/Pollsters"
-            elevation="1"
-            color="#ffba69"
-          >
-            <v-icon left>mdi-account-group</v-icon>
-            Mercaderistas
-          </v-btn>
+      
         </v-row>
       </v-col>
     </v-row>
@@ -385,7 +313,7 @@
         <v-card class="rounded-xl pa-3" rounded="true">
           <v-row class="align-baseline justify-space-between">
             <v-col cols="5" lg="4">
-              <h3 class="tText pl-3">Rutas Activas</h3>
+              <h3 class="tText pl-3">Camiones Activos</h3>
             </v-col>
             <v-col class="text-top pr-3" lg="7">
               <v-text-field
@@ -441,80 +369,10 @@
         <v-card class="rounded-xl pa-3" rounded="true">
           <v-row class="align-baseline justify-space-between">
             <v-col cols="5" lg="4">
-              <h3 class="tText pl-3">Encuestadores</h3>
+              <h3 class="tText pl-3">Stock por Vendedor</h3>
             </v-col>
             <v-col class="text-right mr-3" lg="7">
-              <v-dialog
-                v-model="dialogAddPollster"
-                persistent
-                max-width="600px"
-              >
-                <template v-slot:activator="{ attrs }">
-                  <v-btn
-                    class="text-capitalize"
-                    medium
-                    elevation="1"
-                    color="#ffba69"
-                    v-bind="attrs"
-                    :disabled="selectedRouteData === null"
-                    @click="searchActivePollsters"
-                  >
-                    <v-icon left>mdi-account-multiple-plus</v-icon>
-                    Agregar
-                  </v-btn>
-                </template>
-                <v-card>
-                  <v-card-title>
-                    <h2 class="tText">Añadir a ruta</h2>
-                    <v-spacer></v-spacer>
-                    <v-text-field
-                      v-model="searchQueryPollster"
-                      append-icon="mdi-magnify"
-                      label="Buscar"
-                      single-line
-                      color="accent"
-                      hide-details
-                    ></v-text-field>
-                  </v-card-title>
-                  <v-card-subtitle>
-                    <h3 v-if="selectedRouteData !== null" class="tText">
-                      {{ selectedRouteData.route }}
-                    </h3>
-                  </v-card-subtitle>
-                  <v-card-text>
-                    <v-container>
-                      <v-data-table
-                        v-model="selectedToAddRoute"
-                        :headers="headersAddToRoute"
-                        :items="addToRouteItems"
-                        :single-select="true"
-                        show-select
-                        item-key="imei"
-                        :items-per-page="5"
-                        :search="searchQueryPollster"
-                        :loading="loadAddToRoute"
-                      >
-                      </v-data-table>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      color="deep-purple darken-4"
-                      text
-                      @click="closeDialodAddToRoute"
-                      >Cerrar</v-btn
-                    >
-                    <v-btn
-                      color="deep-purple darken-4"
-                      :dark="selectedToAddRoute.length !== 0"
-                      :disabled="selectedToAddRoute.length === 0"
-                      @click="addToRoutePollster"
-                      >Añadir</v-btn
-                    >
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
+           
             </v-col>
           </v-row>
           <v-data-table
@@ -585,7 +443,7 @@ export default {
   //GET NECESARY INFO FROM SERVER
   created() {
     this.getCampaignStatus();
-    this.getCampaignInServer();
+
     this.getStatesInServer();
   },
   // SET DEFAULT VARIABLES TO MANAGE THE INFORMATION
@@ -605,9 +463,9 @@ export default {
       successList: [],
       lockFinishOptions: true,
       optionItems: ["Importar local", "Importar local y tareas"],
-      campaignItems: [],
+      campaignItems: [{name:"Carga Camion"},{name:"Devolucion"}],
       stateItems: [],
-      selectOption: "Importar local",
+      selectOption: "Carga Camion",
       selectState: null,
       selectCampaign: null,
       errorDownloadLink: "",
@@ -621,15 +479,21 @@ export default {
       itemsFacturaProcesar:null,
       erroresFactura:[],
       headersRoute: [
+          {
+          text: "ID",
+          align: "left",
+          sortable: false,
+          value: "id",
+        },
         {
-          text: "RUTA",
+          text: "Venddor",
           align: "left",
           sortable: false,
           value: "route",
         },
-        { text: "ESTADO", value: "status", align: "center" },
+        { text: "Estado", value: "status", align: "center" },
         {
-          text: "ENCUESTADORES",
+          text: "Inventario",
           value: "actions",
           sortable: false,
           align: "center",
@@ -637,15 +501,16 @@ export default {
       ],
       headersPollsters: [
         {
-          text: "IMEI",
+          text: "Id",
           align: "left",
           sortable: false,
           value: "code",
         },
-        { text: "NOMBRES", value: "name", align: "center" },
-        { text: "CELULAR", value: "phone", align: "center" },
-        { text: "OFICINA", value: "oficina", align: "center" },
-        { text: "       ", value: "actions", sortable: false, align: "center" },
+        { text: "Producto", value: "producto", align: "center" },
+        { text: "Cantidad", value: "cantidad", align: "center" },
+         { text: "Precio", value: "precio", align: "center" },
+        
+   
       ],
       headersActivePollsters: [
         {
@@ -739,6 +604,34 @@ export default {
       this.dialog = true;
       this.banderaxml = false;
     },
+    //GET THE CURRENT POLLSTERS IN A ROUTE, BY CLICKING ONE
+    async searchPollsters(itemRoute) {
+      try {
+        this.setLoading(true);
+        this.loadingPollstersInRoute = true;
+
+        var requestParams = {
+          IdAccount: parseInt(this.getUserData.idAccount, 10),
+          RouteCode: itemRoute.id.toString(),
+        };
+        const response = await http.post(
+          `/Surti/ObtnerInventarioVenddoresActivos`,
+          requestParams
+        );
+
+        if (response.status === "Ok") {
+        this.selectedRouteData = itemRoute;
+          this.pollstersItems = response.data;
+        } else {
+          throw response.messege;
+        }
+      } catch (e) {
+        alert(e);
+      } finally {
+        this.loadingPollstersInRoute = false;
+        this.setLoading(false);
+      }
+    },
 
     //SHOW OR HIDE ROUTE STATUS INPUT FIELD
     setOption(value) {
@@ -760,7 +653,7 @@ export default {
           IdAccount: parseInt(this.getUserData.idAccount, 10),
         };
 
-        const response = await http.post(`/Branch/RouteActive`, requestParams);
+        const response = await http.post(`/Surti/ObtnerVenddoresActivos`, requestParams);
         if (response.status === "Ok") {
           this.routeItems = response.data;
         } else {
@@ -773,49 +666,8 @@ export default {
       }
     },
 
-    //GET CAMPAIGN INFORMATION FOR A CURRENT USER
-    async getCampaignInServer() {
-      try {
-        var requestParams = {
-          Iduser: this.getUserData.idUser,
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-        };
 
-        const response = await http.post(
-          `/Branch/RouteCampaign`,
-          requestParams
-        );
-        if (response.status === "Ok") {
-          this.campaignItems = response.data;
-        } else {
-          throw response.messege;
-        }
-      } catch (dataError) {
-        alert(dataError);
-      } finally {
-        console.log("");
-      }
-    },
-
-    //GET ROUTE STATES FOR A CURRENT USER
-    async getStatesInServer() {
-      try {
-        var requestParams = {
-          Iduser: this.getUserData.idUser,
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-        };
-        const response = await http.post(`/Branch/RouteStatus`, requestParams);
-        if (response.status === "Ok") {
-          this.stateItems = response.data;
-        } else {
-          throw response.messege;
-        }
-      } catch (dataError) {
-        alert(dataError);
-      } finally {
-        console.log("");
-      }
-    },
+  
 
     //GET THE FILE INPUT AND TRANSFORM IN AN JSON ARRAY
     parseFile(result) {
@@ -837,7 +689,7 @@ export default {
           let jsonObject = JSON.stringify(rowObject);
           var isValid = this.checkValidDocument(jsonObject);
           if (isValid) {
-            var hasDuplicate = this.checkForDuplicate(jsonObject);
+            var hasDuplicate = false;
             if (!hasDuplicate) {
               this.uploadData = JSON.parse(jsonObject);
               this.lockUp = true;
@@ -856,232 +708,6 @@ export default {
       }
     },
 
-    parseFilexml(result) {
-      try {
-        // const utf8 = require('utf8');
-        console.log('result')
-        console.log(result)
-
-        this.loadingData = true;
-        
-        this.step1xml(result);
-
-        this.lockUp = true;
-        this.uploadData = true;
-        this.loadingData = false;
-
-      } catch (e) {
-        console.log(e);
-      }
-    },
-
-    //GET THE CURRENT POLLSTERS IN A ROUTE, BY CLICKING ONE
-    async step1xml(file) {
-      try {
-        this.setLoading(true);
-
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          urlfile: file,
-        };
-        const response = await http.post(
-          `/Task/getFactura`,
-          requestParams
-        );
-
-        if (response.status === "Ok") {
-          console.log("OK")
-          console.log(response)
-          this.itemsFactura=response.data.listbills.length;
-          this.itemsFacturaProcesar = response.data;
-          this.knowledge = 0;
-        } else {
-          throw response.messege;
-        }
-      } catch (e) {
-        alert(e);
-      } finally {
-        this.setLoading(false);
-      }
-    },
-
-    verificar(){
-      this.knowledge = 0;
-      var parte = 100/this.itemsFactura;
-      let listaError = "";
-      let contador = 1;
-      var duplicado = false;
-
-      this.itemsFacturaProcesar.listbills.forEach(element => {
-        this.erroresFactura = [];
-        this.step2xml(element).then(res=>{
-
-          if(res.status === "Duplicado"){
-            duplicado = true;
-          }
-          
-          if(res.status === "Ok"){
-            this.knowledge = this.knowledge + (parseFloat(parte.toFixed(2)) * res.data);
-            if(this.knowledge>=100){ 
-              this.knowledge=100; 
-            }
-          }else{
-            this.erroresFactura.push(res);
-            listaError = listaError + res.data.data.code + ", "
-          }
-          contador = contador + 1
-
-          if(contador == this.itemsFacturaProcesar.listbills.length){
-            if (duplicado){
-              alert("La factura ya se encuentra ingresada en el sistema.")
-            }
-            else if(this.erroresFactura.length>0){
-              alert("Los siguientes productos no estan registrados: " + listaError)
-            }else{
-              this.$refs.obs.flags.invalid = false;
-              this.$refs.obs.flags.validated = true;
-            }
-          }
-        });
-      });
-      this.successList = [];
-      this.errorList = [];
-      console.log('erroresFactura')
-      console.log(this.erroresFactura)
-    },
-
-    async verificarSave(){
-      this.step = 3;
-      this.lockFinishOptions = false;
-      console.log(this.itemsFacturaProcesar);
-
-      let fact = "0";
-      let factList = [];
-      this.itemsFacturaProcesar.listbills;
-
-      for(let i=0;i<this.itemsFacturaProcesar.listbills.length;i++){
-        fact = this.itemsFacturaProcesar.listbills[i].numFact;
-        if (factList.find(f=>f.numFact === fact) == undefined){
-          factList.push(this.itemsFacturaProcesar.listbills[i]);
-        }
-      }
-
-      console.log(factList);
-
-
-      for(let i=0;i<factList.length;i++){
-        let element = factList[i];
-        let res = await this.step2Factura(element)
-        var conta = 1
-        if(res.status === "Ok"){
-          for(let i=0;i<this.itemsFacturaProcesar.listbills.length;i++){
-            let element = this.itemsFacturaProcesar.listbills[i];
-            this.step2xmlSave(element).then(
-              res=>{
-                if(res.status === "Ok"){
-                  this.successList.push(res)
-                }else{
-                  this.errorList.push(res)
-                }
-                if (conta == this.itemsFacturaProcesar.listbills.length){
-                  if(this.errorList.length == 0){
-                    var mensaje = "La factura se cargo Exitosamente "+conta+" de "+this.itemsFacturaProcesar.listbills.length;
-                    alert(mensaje)
-                  }
-                }
-                conta++;
-              }
-            )
-
-            
-          }
-          
-
-          console.log("LISTA DE ERRORES DE CARGA ---->")
-          console.log(this.errorList)
-          
-
-        }
-      } 
-    },
-
-    async step2Factura(factura) {
-      try {
-        this.setLoading(true);
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          urlfile: JSON.stringify(factura),
-        };
-        const response = await http.post(
-          `/Task/LoadProductFactura`,
-          requestParams
-        );
-
-        if (response.status === "Ok") {
-          this.setLoading(false);
-          return response
-        } else {
-          // throw response.messege;
-          this.setLoading(false);
-          return response
-        }
-      } catch (e) {
-        alert(e);
-        this.setLoading(false);
-      } 
-    },
-
-    async step2xml(Detallefactura) {
-      try {
-        this.setLoading(true);
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          urlfile: JSON.stringify(Detallefactura),
-        };
-        const response = await http.post(
-          `/Task/LoadProduct`,
-          requestParams
-        );
-
-        if (response.status === "Ok") {
-          this.setLoading(false);
-          return response
-        } else {
-          // throw response.messege;
-          this.setLoading(false);
-          return response
-        }
-      } catch (e) {
-        alert(e);
-        this.setLoading(false);
-      } 
-    },
-
-    step2xmlSave(Detallefactura) {
-      try {
-        this.setLoading(true);
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          urlfile: JSON.stringify(Detallefactura),
-        };
-        const response = http.post(
-          `/Task/SaveProduct`,
-          requestParams
-        );
-
-        if (response.status === "Ok") {
-          this.setLoading(false);
-          return response
-        } else {
-          // throw response.messege;
-          this.setLoading(false);
-          return response
-        }
-      } catch (e) {
-        alert(e);
-        this.setLoading(false);
-      } 
-    },
 
     //PREPARE FILE TO BE PARSED AND UPLOAD
     readFile() {
@@ -1127,202 +753,35 @@ export default {
       }
     },
 
-    //SET A NEW STATE FOR A ROUTE IN THE SYSTEM
-    async changeStateRoute(itemRoute) {
-      try {
-        this.setLoading(true);
 
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          RouteCode: itemRoute.route,
-        };
-        const response = await http.post(
-          `/Branch/ChangeStatusRoute`,
-          requestParams
-        );
 
-        if (response.status !== "Ok") {
-          throw response.messege;
-        }
-      } catch (e) {
-        alert(e);
-      } finally {
-        this.setLoading(false);
-      }
-    },
 
-    //GET THE CURRENT POLLSTERS IN A ROUTE, BY CLICKING ONE
-    async searchPollsters(itemRoute) {
-      try {
-        this.setLoading(true);
-        this.loadingPollstersInRoute = true;
 
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          RouteCode: itemRoute.route,
-        };
-        const response = await http.post(
-          `/Branch/GetEncuestadorbyRoute`,
-          requestParams
-        );
 
-        if (response.status === "Ok") {
-          this.selectedRouteData = itemRoute;
-          this.pollstersItems = response.data;
-        } else {
-          throw response.messege;
-        }
-      } catch (e) {
-        alert(e);
-      } finally {
-        this.loadingPollstersInRoute = false;
-        this.setLoading(false);
-      }
-    },
-
-    //DELETE A POLLSTER IN A PRE SELECTED ROUTE
-    async deletePollsterRoute(pollster) {
-      try {
-        this.eraseDialog = false;
-        this.setLoading(true);
-        this.loadingPollstersInRoute = true;
-
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          RouteCode: this.selectedRouteData.route,
-          Iddevice: pollster.code,
-        };
-        //TODO: CHANGE TO DELETE ITEM
-        const response = await http.post(
-          `/Branch/DeleteRoutePollsterbyImei`,
-          requestParams
-        );
-
-        if (response.status === "Ok") {
-          const index = this.pollstersItems.indexOf(pollster);
-          this.pollstersItems.splice(index, 1);
-        } else {
-          throw response.messege;
-        }
-      } catch (e) {
-        alert(e);
-      } finally {
-        this.loadingPollstersInRoute = false;
-        this.setLoading(false);
-      }
-    },
-
-    //CLOSE AND CLEAN ADD TO ROUTE DATA
-    closeDialodAddToRoute() {
-      this.dialogAddPollster = false;
-      this.searchQueryPollster = "";
-      this.addToRouteItems = [];
-      this.selectedToAddRoute = [];
-    },
-
-    //GET ACTIVE POLLSTERS FOR THE CURRENT USER AND ROUTE
-    async searchActivePollsters() {
-      try {
-        this.dialogAddPollster = true;
-        this.loadAddToRoute = true;
-
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          RouteCode: this.selectedRouteData.route,
-        };
-
-        //var uploadHeaderData = parseInt(this.getUserData.idAccount, 10);
-        /*const response = await http.post(
-          `/Branch/GetlistPollsterActivebyAccount?account=${uploadHeaderData}`
-        );*/
-        const response = await http.post(
-          `/Branch/GetlistPollsterActivebyAccountRoute`,
-          requestParams
-        );
-        if (response.status === "error") {
-          throw response.messege;
-        } else {
-          this.addToRouteItems = response.data;
-        }
-      } catch (dataError) {
-        alert(dataError);
-      } finally {
-        this.loadAddToRoute = false;
-      }
-    },
-
-    //SET NEW POLLSTER IN A PRE SELECTED ROUTE
-    async addToRoutePollster() {
-      try {
-        this.setLoading(true);
-        var pollster = this.selectedToAddRoute[0];
-
-        var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
-          RouteCode: this.selectedRouteData.route,
-          Iddevice: pollster.imei,
-        };
-
-        const response = await http.post(
-          `/Branch/SaveRoutePollsterbyImei`,
-          requestParams
-        );
-
-        if (response.status === "Ok") {
-          this.searchPollsters(this.selectedRouteData);
-          const index = this.addToRouteItems.indexOf(pollster);
-          this.addToRouteItems.splice(index, 1);
-          this.closeDialodAddToRoute();
-        } else {
-          throw response.messege;
-        }
-      } catch (e) {
-        alert(e);
-      } finally {
-        this.setLoading(false);
-      }
-    },
 
     //UPLOAD EACH ARRAY ITEM FILE IMPORT TO SERVER
-      async uploadDataToServer(itemData, campaignId, optionId, statusId) {
+      async uploadDataToServer(itemData, campaignId, optionId) {
       try {
-           itemData.Apellidos = itemData.Apellidos.toString();
-          itemData.CLUSTER = itemData.CLUSTER.toString();
-          itemData.Canton = itemData.Canton.toString();
-          itemData.Celular = itemData.Celular.toString();
-          itemData.Codigo_Encuesta = itemData.Codigo_Encuesta.toString();
-          itemData.Cédula = itemData.Cédula.toString();
-          itemData.Dirección = itemData.Dirección.toString();
-          itemData.Estado = itemData.Estado.toString();
-          itemData.IMEI = itemData.IMEI.toString();
-          itemData.Latitud = itemData.Latitud.toString();
-          itemData.Longitud = itemData.Longitud.toString();
-          itemData.Mail = itemData.Mail.toString();
-          itemData.Nombres = itemData.Nombres.toString();
-          itemData.PT_indice = itemData.PT_indice.toString();
-          itemData.Parroquia = itemData.Parroquia.toString();
-          itemData.Provincia = itemData.Provincia.toString();
-          itemData.RUTA = itemData.RUTA.toString();
-          itemData.Referencia = itemData.Referencia.toString();
-          itemData.Telefono = itemData.Telefono.toString();
-          itemData.Tipo = itemData.Tipo.toString();
-          itemData.local = itemData.local.toString();
-          itemData.Zona_Peligrosa = itemData.Zona_Peligrosa.toString(); 
-      } catch (error) {
+
+        console.log(itemData);
+           itemData.Cantidad= itemData.Cantidad.toString();
+          itemData.Cedula = itemData.Cedula.toString();
+          itemData.Nombre_Producto = itemData.Nombre_Producto.toString();
+          itemData.Vendedor = itemData.Vendedor.toString();
+          itemData.Id_Producto = itemData.Id_Producto.toString();
+                } catch (error) {
           alert("Error en los formatos del archivo refresque la paguina y vuelva a cargar");
       }
       
       try {
         var uploadHeaderData = {
-          account: parseInt(this.getUserData.idAccount, 10),
+          account: parseInt(this.getUserData.idAccount, 13),
           iduser: this.getUserData.idUser,
           option: optionId,
-          campaign: campaignId,
-          status: statusId,
-          _route: itemData,
+          stockCamion: itemData,
         };
-        const response = await http.post(`/Branch/LoadTask`, uploadHeaderData);
-        if (response.status === "error") {
+        const response = await http.post(`/Surti/LoadStock`, uploadHeaderData);
+        if (response.status === "Error") {
           throw response;
         }
         this.successList.push(itemData);
@@ -1335,11 +794,12 @@ export default {
       }
     },
 
+
     //IF ERRORS TO UPLOAD FILE ITEMS, GET A DOCUMENT
     async getErrorDocument() {
       try {
         const response = await http.post(
-          `/Branch/PrintErrorLoadTask`,
+          `/Surti/PrintErrorLoadTask`,
           this.errorList
         );
         this.errorDownloadLink = response.data;
@@ -1349,34 +809,19 @@ export default {
         console.log("");
       }
     },
+  //CALL A LOOP TO INSERT THE INFORMATION INTO SERVER
 
     //CHECK IF THE INPUT FILE GET THE CURRENT HEADERS
     checkValidDocument(data) {
       var json = JSON.parse(data);
      
       if (
-        "Codigo_Encuesta" in json[0] &&
-        "PT_indice" in json[0] &&
-        "Tipo" in json[0] &&
-        "local" in json[0] &&
-        "Dirección" in json[0] &&
-        "Referencia" in json[0] &&
-        "Nombres" in json[0] &&
-        "Apellidos" in json[0] &&
-        "Mail" in json[0] &&
-        "Cédula" in json[0] &&
-        "Celular" in json[0] &&
-        "Telefono" in json[0] &&
-        "Latitud" in json[0] &&
-        "Longitud" in json[0] &&
-        "Provincia" in json[0] &&
-        "Canton" in json[0] &&
-        "Parroquia" in json[0] &&
-        "Estado" in json[0] &&
-        "CLUSTER" in json[0] &&
-        "RUTA" in json[0] &&
-        "IMEI" in json[0]&&
-        "Zona_Peligrosa" in json[0]
+        "Id_Producto" in json[0] &&
+        "Nombre_Producto" in json[0] &&
+        "Vendedor" in json[0] &&
+        "Cedula" in json[0] &&
+        "Cantidad" in json[0] 
+     
       ) {
         return true;
       } else {
@@ -1392,7 +837,7 @@ export default {
         for (var j = 0, lenCopy = json.length; j < lenCopy; j++) {
           if (
             i !== j &&
-            json[i]["Codigo_Encuesta"] === json[j]["Codigo_Encuesta"]
+            json[i]["Id_Producto"] === json[j]["Id_Producto"]
           ) {
             repeted = true;
             break;

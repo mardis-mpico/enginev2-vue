@@ -40,8 +40,8 @@ const routes = [
         component: () => import("../components/Navigatios/Costumers.vue"),
       },
       {
-        path: "Service",
-        component: () => import("../components/Navigatios/Services.vue"),
+        path: "CargaBodega",
+        component: () => import("../components/Navigatios/CargaBodega.vue"),
       },
       {
         path: "Branch",
