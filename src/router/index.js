@@ -36,8 +36,8 @@ const routes = [
         component: () => import("../components/Navigatios/Campaigns.vue"),
       },
       {
-        path: "Customer",
-        component: () => import("../components/Navigatios/Costumers.vue"),
+        path: "Client",
+        component: () => import("../components/Navigatios/BodegaCentral.vue"),
       },
       {
         path: "CargaBodega",
