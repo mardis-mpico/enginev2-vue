@@ -232,7 +232,7 @@
             elevation="1"
             light
             color="secondary-text"
-            @click="dialog = !dialog"
+           
           >
             <v-icon left>mdi-file-excel</v-icon>
             Importar
