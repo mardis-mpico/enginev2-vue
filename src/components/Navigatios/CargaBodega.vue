@@ -609,9 +609,9 @@ export default {
       try {
         this.setLoading(true);
         this.loadingPollstersInRoute = true;
-
+        let idcuenta=this.getUserData.idAccount;
         var requestParams = {
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
+          IdAccount: parseInt(idcuenta.toString()),
           RouteCode: itemRoute.id.toString(),
         };
         const response = await http.post(
@@ -648,9 +648,10 @@ export default {
     async getCampaignStatus() {
       try {
         this.loadingActiveRoutes = true;
+        let idcuenta=this.getUserData.idAccount;
         var requestParams = {
           Iduser: this.getUserData.idUser,
-          IdAccount: parseInt(this.getUserData.idAccount, 10),
+          IdAccount: parseInt(idcuenta.toString()),
         };
 
         const response = await http.post(`/Surti/ObtnerVenddoresActivos`, requestParams);
@@ -774,14 +775,16 @@ export default {
       }
       
       try {
+          let idcuenta=this.getUserData.idAccount;
         var uploadHeaderData = {
-          account: parseInt(this.getUserData.idAccount, 13),
+          account: parseInt(idcuenta.toString()),
           iduser: this.getUserData.idUser,
           option: optionId,
           stockCamion: itemData,
         };
+      
         const response = await http.post(`/Surti/LoadStock`, uploadHeaderData);
-        if (response.status === "Error") {
+        if (response.status === "Error" ) {
           throw response;
         }
         this.successList.push(itemData);
