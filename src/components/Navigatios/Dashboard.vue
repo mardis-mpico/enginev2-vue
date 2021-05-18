@@ -915,7 +915,9 @@ export default {
       this.itemsFacturaProcesar.listbills.forEach(element => {
         this.erroresFactura = [];
         this.step2xml(element).then(res=>{
-
+          if(contador == 1){
+            this.knowledge = 0;
+          }
           if(res.status === "Duplicado"){
             duplicado = true;
           }
@@ -923,14 +925,14 @@ export default {
           if(res.status === "Ok"){
             this.knowledge = this.knowledge + (parseFloat(parte.toFixed(2)) * res.data);
             if(this.knowledge>=100){ 
-              this.knowledge=100; 
+              this.knowledge=100;
             }
           }else{
             this.erroresFactura.push(res);
             listaError = listaError + res.data.data.code + ", "
           }
-          contador = contador + 1
-
+          
+          console.log("conatdor: " + contador + " / " + this.itemsFacturaProcesar.listbills.length)
           if(contador == this.itemsFacturaProcesar.listbills.length){
             if (duplicado){
               alert("La factura ya se encuentra ingresada en el sistema.")
@@ -942,6 +944,7 @@ export default {
               this.$refs.obs.flags.validated = true;
             }
           }
+          contador = contador + 1
         });
       });
       this.successList = [];
