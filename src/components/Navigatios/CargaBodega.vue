@@ -112,7 +112,7 @@
                           v-slot="{ errors }"
                         >
                           <v-select
-                            v-model="computedCampaign"
+                            v-model="computedOption"
                             name="Tipo de Ingreso"
                             :items="campaignItems"
                             label="Tipo de Ingreso"
@@ -747,9 +747,9 @@ export default {
 
     //GET THE ID FROM THE CURRENT OPTION
     getOptionIdFromString() {
-      if (this.selectOption === "Importar local") {
+      if (this.selectOption === "Carga Camion") {
         return 1;
-      } else if (this.selectOption === "Importar local y tareas") {
+      } else if (this.selectOption === "Devolucion") {
         return 2;
       }
     },
