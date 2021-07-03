@@ -1,51 +1,65 @@
 <template>
   <div>
-        <v-dialog v-model="eraseDialog" persistent max-width="290">
-      <v-card>
-        <v-card-title class="headline">Eliminar Mercaderista</v-card-title>
-        <v-card-text
-          >¿Está seguro de eliminar el mercaderista? Una vez eliminado, no se
-          podrá deshacer.</v-card-text
-        >
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="accent darken-1" text @click="close('E')"
-            >Cancelar</v-btn
-          >
-          <v-btn color="accent darken-1" dark @click="acceptDelete"
-            >Aceptar</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <v-snackbar
+      v-model="snackbar"
+      :timeout="timeout"
+      color="deep-purple accent-4"
+      elevation="24"
+      bottom
+      right
+    >
+      {{ text }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="blue" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
     <v-flex text-xs-center>
-      {{ geoactualiza }}
-      {{ geoactualizas }}
       <editable-map
         ref="mapRef"
         :zoom="zoom"
         :center="center"
         style="
-                  height: 80vh;
-                  position: absolute;
-                  width: 99vw;
-                  top: 30px;
-                  outline: none;
-                "
+          height: 80vh;
+          position: absolute;
+          width: 99vw;
+          top: 30px;
+          outline: none;
+        "
       >
         <l-tile-layer :url="url"></l-tile-layer>
 
-        <v-marker-cluster > 
+        <v-marker-cluster>
           <l-marker
             v-for="(detector, index) in detectors_actual"
-            :icon="icon"
             :key="'marker-' + index"
             :draggable="true"
             :lat-lng="[detector.lat, detector.lng]"
-         
-            @update:latLng="actualizarLocal"
+            @click="addMarker"
           >
-            <l-tooltip>{{ detector.name }}</l-tooltip>
+         
+            <l-popup>
+              <v-card>
+                <v-card-title class="headline"></v-card-title>
+                <v-card-text
+                  ><h5><b>LOCAL: </b>{{ detector.name }}</h5>
+                  <br />
+                  <h5><b>CODIGO: </b>{{ detector.codigo }}</h5>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+
+                  <v-btn
+                    color="orange darken-1"
+                    dark
+                    @click="actualizarLocal(detector)"
+                    >Actualizar Geo</v-btn
+                  >
+                </v-card-actions>
+              </v-card></l-popup
+            >
           </l-marker>
         </v-marker-cluster>
       </editable-map>
@@ -54,9 +68,11 @@
 </template>
 
 <script>
-import { LMarker, LTileLayer, LTooltip } from "vue2-leaflet";
+import { LMarker, LTileLayer, LPopup } from "vue2-leaflet";
 import { EditableMap } from "vue2-leaflet-editable";
 import Vue2LeafletMarkercluster from "vue2-leaflet-markercluster";
+import activo from '@/assets/activo.png';
+import { mapGetters } from "vuex";
 import { http } from "@/plugins/axios";
 import L from "leaflet";
 export default {
@@ -65,17 +81,20 @@ export default {
     EditableMap,
     LMarker,
     LTileLayer,
-    LTooltip,
+    LPopup,
+    
+   
     "v-marker-cluster": Vue2LeafletMarkercluster,
   },
   created() {
-    http.post(`/Branch/ObtenerLocalesConGeo?cuenta=15`).then((response) => {
-      console.log(response);
-      this.detectors = response;
-      this.detectorsCount = response.length;
-      this.groupedDetectors = this.groupBy(this.detectors, "type", "Name");
-      this.detectors_actual = this.detectors;
-    });
+    http
+      .post(`/Branch/ObtenerLocalesConGeo?cuenta=${this.getUserData.idAccount}`)
+      .then((response) => {
+        this.detectors = response;
+        this.detectorsCount = response.length;
+        this.groupedDetectors = this.groupBy(this.detectors, "type", "Name");
+        this.detectors_actual = this.detectors;
+      });
   },
   data() {
     return {
@@ -84,7 +103,11 @@ export default {
         radius: 1,
         weight: 1,
       },
-
+       src: {
+                activo: activo,
+                invactivo: activo,
+            },
+           
       zoom: 8,
       center: L.latLng(-1.2317964662810112, -78.205769913041),
       url: "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png",
@@ -94,6 +117,7 @@ export default {
         disableClusteringAtZoom: 2,
         chunkedLoading: true,
       },
+         staticAnchor: [1, 1],
       geojson: null,
       geoJsonLoaded: false,
       drawer: null,
@@ -101,10 +125,15 @@ export default {
       detectors_actual: [],
       groupedDetectors: [],
       geoactualiza: [],
+      snackbar: false,
+      text: "Se guardo la ubicación",
+      timeout: 2000,
       geoactualizas: "ddas",
       detectorsCount: null,
       search: { text: "" },
-      eraseDialog:false,
+      eraseDialog: false,
+      latitudActualiza: null,
+      longitudactualizada: null,
       geoJsonOptions: {
         style: (feature) => {
           if (feature.properties.OWNER === "GWI") {
@@ -129,34 +158,9 @@ export default {
       },
     };
   },
-  mounted() {
-    this.$nextTick(() => {
-      const map = this.$refs.map.mapObject;
-      const drawControl = new window.L.Control.Draw({
-        position: "topright",
-        draw: {
-          polyline: {
-            allowIntersection: false,
-            showArea: true,
-          },
-          polygon: false,
-          rectangle: false,
-          circle: false,
-          marker: false,
-        },
-      });
-
-      map.addControl(drawControl);
-
-      const editableLayers = new window.L.FeatureGroup().addTo(map);
-      map.on(window.L.Draw.Event.CREATED, (e) => {
-        // const type = e.layerType;
-        const layer = e.layer;
-
-        // Do whatever else you need to. (save to db, add to map etc)
-        editableLayers.addLayer(layer);
-      });
-    });
+  mounted() {},
+  computed: {
+    ...mapGetters(["getUserData"]),
   },
   methods: {
     groupBy(array, key1, key2) {
@@ -172,10 +176,26 @@ export default {
       return result;
     },
     async opciones() {
-        this.eraseDialog=true
+      this.eraseDialog = true;
     },
     async actualizarLocal(e) {
-      console.log(e.lat);
+      http
+        .post(
+          `/Branch/ActualizarGeoLocal?idbranch=${e.id}&lat=${this.latitudActualiza}&lon=${this.longitudactualizada}&`
+        )
+        .then((response) => {
+          this.snackbar = true;
+          console.log(response);
+          this.detectors.find(x=>x.id==e.id).lat=this.latitudActualiza;
+           this.detectors.find(x=>x.id==e.id).lng=this.longitudactualizada;
+        });
+      console.log(e);
+    },
+    addMarker(event) {
+      this.longitudactualizada = event.latlng.lng;
+      this.latitudActualiza = event.latlng.lat;
+
+      //this.markers.push(event.latlng);
     },
   },
 };
@@ -187,5 +207,9 @@ export default {
 
 .leaflet-container {
   height: 50vh;
+}
+.leaflet-popup-content-wrapper .leaflet-popup-tip {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 </style>
