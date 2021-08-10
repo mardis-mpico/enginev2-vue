@@ -1311,6 +1311,7 @@ export default {
           itemData.Tipo = itemData.Tipo.toString();
           itemData.local = itemData.local.toString();
           itemData.Zona_Peligrosa = itemData.Zona_Peligrosa.toString(); 
+          itemData.Fuera_ruta= itemData.Zona_Peligrosa.toString(); 
       } catch (error) {
           alert("Error en los formatos del archivo refresque la paguina y vuelva a cargar");
       }
@@ -1379,7 +1380,8 @@ export default {
         "CLUSTER" in json[0] &&
         "RUTA" in json[0] &&
         "IMEI" in json[0]&&
-        "Zona_Peligrosa" in json[0]
+        "Zona_Peligrosa" in json[0],
+         "Fuera_ruta" in json[0]
       ) {
         return true;
       } else {
