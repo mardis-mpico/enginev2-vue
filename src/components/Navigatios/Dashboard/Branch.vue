@@ -28,6 +28,7 @@
           top: 30px;
           outline: none;
         "
+        v-if="!loadingData"
       >
         <l-tile-layer :url="url"></l-tile-layer>
 
@@ -39,14 +40,20 @@
             :lat-lng="[detector.lat, detector.lng]"
             @click="addMarker"
           >
-         
             <l-popup>
               <v-card>
                 <v-card-title class="headline"></v-card-title>
                 <v-card-text
                   ><h5><b>LOCAL: </b>{{ detector.name }}</h5>
-                  <br />
+
                   <h5><b>CODIGO: </b>{{ detector.codigo }}</h5>
+
+                  <h5><b>Vendedor: </b>{{ detector.vendedor }}</h5>
+                  <h5><b>Dia: </b>{{ detector.dia }}</h5>
+                  <br />
+                  <h5>
+                    <b>GEO Actual: </b>{{ detector.lat + ";" + detector.lng }}
+                  </h5>
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -62,16 +69,59 @@
             >
           </l-marker>
         </v-marker-cluster>
+        <l-control-zoom position="bottomright"></l-control-zoom>
+        <l-control position="topleft">
+          <v-text-field
+            label="Búsqueda Vendedor.."
+            @change="SearchLocationVendedor($event)"
+            filled
+            rounded
+            dense
+            color="orange darken-1"
+          ></v-text-field>
+
+          <v-text-field
+            label="Búsqueda Código"
+            @change="SearchLocation($event)"
+            filled
+            rounded
+            dense
+            color="orange darken-1"
+          ></v-text-field>
+          <v-select
+            :items="items"
+            value="TODOS"
+            label="Búsqueda Día"
+            @change="SearchLocationDia($event)"
+            dense
+            outlined
+            color="orange darken-1"
+          ></v-select>
+        </l-control>
+        <l-control position="bottomleft">
+          <v-btn class="ma-2" outlined fab color="teal">
+            <v-icon @click="PrintDocumentDocument">mdi-file-excel</v-icon>
+          </v-btn>
+        </l-control>
       </editable-map>
     </v-flex>
+    <v-overlay :value="loadingData">
+      <v-progress-circular indeterminate size="84">Cargando..</v-progress-circular>
+    </v-overlay>
   </div>
 </template>
 
 <script>
-import { LMarker, LTileLayer, LPopup } from "vue2-leaflet";
+import {
+  LMarker,
+  LTileLayer,
+  LPopup,
+  LControl,
+  LControlZoom,
+} from "vue2-leaflet";
 import { EditableMap } from "vue2-leaflet-editable";
 import Vue2LeafletMarkercluster from "vue2-leaflet-markercluster";
-import activo from '@/assets/activo.png';
+import activo from "@/assets/activo.png";
 import { mapGetters } from "vuex";
 import { http } from "@/plugins/axios";
 import L from "leaflet";
@@ -82,8 +132,8 @@ export default {
     LMarker,
     LTileLayer,
     LPopup,
-    
-   
+    LControl,
+    LControlZoom,
     "v-marker-cluster": Vue2LeafletMarkercluster,
   },
   created() {
@@ -91,9 +141,11 @@ export default {
       .post(`/Branch/ObtenerLocalesConGeo?cuenta=${this.getUserData.idAccount}`)
       .then((response) => {
         this.detectors = response;
+        this.localesTotals = response;
         this.detectorsCount = response.length;
         this.groupedDetectors = this.groupBy(this.detectors, "type", "Name");
         this.detectors_actual = this.detectors;
+        this.loadingData = false;
       });
   },
   data() {
@@ -103,11 +155,11 @@ export default {
         radius: 1,
         weight: 1,
       },
-       src: {
-                activo: activo,
-                invactivo: activo,
-            },
-           
+      src: {
+        activo: activo,
+        invactivo: activo,
+      },
+
       zoom: 8,
       center: L.latLng(-1.2317964662810112, -78.205769913041),
       url: "https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png",
@@ -117,11 +169,24 @@ export default {
         disableClusteringAtZoom: 2,
         chunkedLoading: true,
       },
-         staticAnchor: [1, 1],
+      items: [
+        "",
+        "Lunes",
+        "Martes",
+        "Miercoles",
+        "Jueves",
+        "Viernes",
+        "Sin definir",
+        "TODOS",
+      ],
+      localesTotals: [],
+      staticAnchor: [1, 1],
       geojson: null,
       geoJsonLoaded: false,
       drawer: null,
+
       detectors: [],
+      loadingData: true,
       detectors_actual: [],
       groupedDetectors: [],
       geoactualiza: [],
@@ -156,6 +221,10 @@ export default {
           }
         },
       },
+      filtrocodigo: "",
+      filtrovendedor: "",
+      filtrofecha: "",
+      errorDownloadLink: "",
     };
   },
   mounted() {},
@@ -175,6 +244,74 @@ export default {
 
       return result;
     },
+    SearchLocation(_codigoLocal) {
+          this.loadingData = true;
+      this.filtrocodigo = _codigoLocal;
+      let _datos = this.localesTotals.filter(
+        (x) =>
+          x.codigo.includes(this.filtrocodigo.toUpperCase()) &&
+          x.vendedor.includes(this.filtrovendedor.toString().toUpperCase()) &&
+          x.dia.includes(this.filtrofecha.toString().toUpperCase())
+      );
+      if (_datos.length == 1) {
+        this.center = L.latLng(_datos[0].lat, _datos[0].lng);
+        this.zoom = 10;
+      } else {
+        this.center = L.latLng(-1.2317964662810112, -78.205769913041);
+        this.zoom = 8;
+      }
+      this.detectors_actual = _datos;
+         this.loadingData = false;
+    },
+    SearchLocationVendedor(_vendedor) {
+          this.loadingData = true;
+      this.filtrovendedor = _vendedor;
+      let _datos = this.localesTotals.filter(
+        (x) =>
+          x.codigo.includes(this.filtrocodigo.toUpperCase()) &&
+          x.vendedor.includes(this.filtrovendedor.toString().toUpperCase()) &&
+          x.dia.includes(this.filtrofecha.toString().toUpperCase())
+      );
+
+      this.center = L.latLng(-1.2317964662810112, -78.205769913041);
+      this.zoom = 8;
+
+      this.detectors_actual = _datos;
+         this.loadingData = false;
+    },
+    SearchLocationDia(_dia) {
+          this.loadingData = true;
+      this.filtrofecha = _dia == "TODOS" ? "" : _dia;
+      let _datos = this.localesTotals.filter(
+        (x) =>
+          x.codigo.includes(this.filtrocodigo.toUpperCase()) &&
+          x.vendedor.includes(this.filtrovendedor.toString().toUpperCase()) &&
+          x.dia.includes(this.filtrofecha.toString().toUpperCase())
+      );
+
+      this.center = L.latLng(-1.2317964662810112, -78.205769913041);
+      this.zoom = 8;
+
+      this.detectors_actual = _datos;
+          this.loadingData = false;
+    },
+
+    async PrintDocumentDocument() {
+      try {
+        this.loadingData = true;
+        const response = await http.post(
+          `/Branch/PrintBranch`,
+          this.detectors_actual
+        );
+        this.errorDownloadLink = response;
+        location.href = this.errorDownloadLink;
+          this.loadingData = false;
+      } catch (e) {
+        alert("ERROR AL OBTENER ARCHIVO DE ERRORES");
+      } finally {
+        this.loadingData = false;
+      }
+    },
     async opciones() {
       this.eraseDialog = true;
     },
@@ -186,8 +323,9 @@ export default {
         .then((response) => {
           this.snackbar = true;
           console.log(response);
-          this.detectors.find(x=>x.id==e.id).lat=this.latitudActualiza;
-           this.detectors.find(x=>x.id==e.id).lng=this.longitudactualizada;
+          this.detectors.find((x) => x.id == e.id).lat = this.latitudActualiza;
+          this.detectors.find((x) => x.id == e.id).lng =
+            this.longitudactualizada;
         });
       console.log(e);
     },
