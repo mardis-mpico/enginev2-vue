@@ -51,6 +51,10 @@ const routes = [
         path: "Task",
         component: () => import("../components/Navigatios/Task.vue"),
       },
+      {
+        path: "Foco",
+        component: () => import("../components/Navigatios/Foco.vue"),
+      },
     ],
   },
 ];
