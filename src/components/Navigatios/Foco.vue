@@ -32,11 +32,11 @@
               medium
               elevation="0"
               color="accent"
-              href="../../assets/cargaLocales.xlsx"
-              download="cargaLocales.xlsx"
+              href="../../assets/FormatoFocos.xlsx"
+              download="FormatoFocos.xlsx"
             >
               <v-icon left>mdi-file-excel</v-icon>
-              Formato
+              Formato Focos
             </v-btn>
           </v-card-title>
           <v-card-subtitle>
@@ -233,7 +233,6 @@
             light
             color="secondary-text"
             @click="dialog = !dialog"
-            :disabled = "true"
           >
             <v-icon left>mdi-file-excel</v-icon>
             Importar
@@ -509,6 +508,15 @@ export default {
       productsAccount: [],
       dialogProduct: false,
       eraseDialog: false,
+      excelItem: {
+        idfoco: 0,
+        nombre: "",
+        descripcion: "",
+        meta: 0,
+        estado: "",
+        idArticulo:[],
+
+      },
       editedItem: {
         idfoco: 0,
         nombre: "",
@@ -598,11 +606,8 @@ export default {
         const response = await http.get(`/Order/getFocos?Idaccount=${idAcc}`);
         if (response.status === "Ok") {
           this.productItems = response.data;
-          
-          console.log("llegaron los Focos");
-          console.log(this.productItems);
-
-
+          // console.log("llegaron los Focos");
+          // console.log(this.productItems);
           if(this.productItems){
             this.productItems.forEach(foco=>{
               var cbxProductos = [];
@@ -638,7 +643,7 @@ export default {
         var workbook = XLSX.read(data, {
           type: "binary",
         });
-        let rowObject = XLSX.utils.sheet_to_json(workbook.Sheets["Formato"], {
+        let rowObject = XLSX.utils.sheet_to_json(workbook.Sheets["Hoja1"], {
           raw: true,
         });
         if (rowObject.length > 0) {
@@ -667,12 +672,10 @@ export default {
     documentToString(data) {
       var jsonData = JSON.parse(data);
       const formated = jsonData.map(function(x) {
-        x["Codigo"] = "" + x["Codigo"];
-        x["Sku"] = "" + x["Sku"];
-        x["IVA"] = "" + x["IVA"];
-        x["Impuesto_interno"] = "" + x["Impuesto_interno"];
-        x["Cantidad"] = "" + x["Cantidad"];
-        x["Precio"] = "" + x["Precio"];
+        x["Nombre"] = "" + x["Nombre"];
+        x["Descripcion"] = "" + x["Descripcion"];
+        x["Meta"] = "" + x["Meta"];
+        x["ProductosFoco"] = "" + x["ProductosFoco"];
         return x;
       });
 
@@ -684,12 +687,10 @@ export default {
       var json = JSON.parse(data);
 
       if (
-        "Codigo" in json[0] &&
-        "Sku" in json[0] &&
-        "IVA" in json[0] &&
-        "Impuesto_interno" in json[0] &&
-        "Cantidad" in json[0] &&
-        "Precio" in json[0]
+        "Nombre" in json[0] &&
+        "Descripcion" in json[0] &&
+        "Meta" in json[0] &&
+        "ProductosFoco" in json[0]
       ) {
         return true;
       } else {
@@ -703,7 +704,7 @@ export default {
       var repeted = false;
       for (var i = 0, len = json.length; i < len; i++) {
         for (var j = 0, lenCopy = json.length; j < lenCopy; j++) {
-          if (i !== j && json[i]["Codigo"] === json[j]["Codigo"]) {
+          if (i !== j && json[i]["Nombre"] === json[j]["Nombre"]) {
             repeted = true;
             break;
           }
@@ -786,6 +787,7 @@ export default {
         console.log(transactionData)
         await http.post(`/Order/transactionFoco`, transactionData);
         this.getProductsFoco();
+        this.getCmbProductos();
       } catch (e) {
         alert(e);
       } finally {
@@ -834,12 +836,32 @@ export default {
         fileReader.onerror = () => alert("Error al cargar el archivo");
       }
     },
-
     //UPLOAD EACH ARRAY ITEM FILE IMPORT TO SERVER
     async uploadDataToServer(itemData) {
       try {
-        itemData["Idaccount"] = parseInt(this.getUserData.idAccount, 10);
-        const response = await http.post(`/Order/SaveExcelProduct`, itemData);
+        this.excelItem.idfoco = 0;
+        this.excelItem.nombre = itemData["Nombre"].toString();
+        this.excelItem.descripcion = itemData["Descripcion"].toString();
+        this.excelItem.meta = parseInt(itemData["Meta"],10);
+        this.excelItem.estado = "A";
+        this.excelItem.idaccount = parseInt(this.getUserData.idAccount, 10);
+        
+        var listaAux = itemData["ProductosFoco"].toString().split('-'); 
+
+        this.excelItem.idArticulo=[];
+        for(let i=0; i < listaAux.length; i++){
+          this.excelItem.idArticulo.push(listaAux[i]);
+        }
+
+        const transactionDataExcel = {
+          transaction: "I",
+          foco: this.excelItem,
+        };
+
+        console.log("transactionFoco");
+        console.log(transactionDataExcel);
+
+        const response = await http.post(`/Order/transactionFoco`, transactionDataExcel);
         if (response.status === "error") {
           throw response;
         }
@@ -904,6 +926,8 @@ export default {
     finishImport() {
       this.dialog = false;
       this.resetImport();
+      this.getProductsFoco();
+      this.getCmbProductos();
     },
   },
 };
