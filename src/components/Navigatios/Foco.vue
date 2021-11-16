@@ -246,6 +246,7 @@
                 color="#ffba69"
                 v-bind="attrs"
                 v-on="on"
+                @click="setearCampos"
               >
                 <v-icon left>mdi-plus</v-icon>
                 Nuevo
@@ -277,6 +278,7 @@
                             label="Código*"
                             prepend-icon="mdi-barcode-scan"
                             color="accent darken-1"
+                            readonly
                             :error-messages="errors"
                           ></v-text-field>
                         </ValidationProvider>
@@ -331,6 +333,94 @@
                         </ValidationProvider>
                       </v-col>
                       <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
+                        <v-menu
+                          ref="menui"
+                          v-model="menui"
+                          :close-on-content-click="false"
+                          :return-value.sync="fechaInicioLabel"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-combobox
+                              v-model="fechaInicioLabel"
+                              label="FECHA INICIO*"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              required
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-combobox>
+                          </template>
+                          <v-date-picker
+                            v-model="fechaInicioLabel"
+                            no-title
+                            scrollable
+                          >
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              text
+                              color="primary"
+                              @click="menui = false"
+                            >
+                              Cancel
+                            </v-btn>
+                            <v-btn
+                              text
+                              color="primary"
+                              @click="$refs.menui.save(fechaInicioLabel)"
+                            >
+                              OK
+                            </v-btn>
+                          </v-date-picker>
+                        </v-menu>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
+                        <v-menu
+                          ref="menuf"
+                          v-model="menuf"
+                          :close-on-content-click="false"
+                          :return-value.sync="fechaFinLabel"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-combobox
+                              v-model="fechaFinLabel"
+                              label="FECHA FIN*"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              required
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-combobox>
+                          </template>
+                          <v-date-picker
+                            v-model="fechaFinLabel"
+                            no-title
+                            scrollable
+                          >
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              text
+                              color="primary"
+                              @click="menuf = false"
+                            >
+                              Cancel
+                            </v-btn>
+                            <v-btn
+                              text
+                              color="primary"
+                              @click="$refs.menuf.save(fechaFinLabel)"
+                            >
+                              OK
+                            </v-btn>
+                          </v-date-picker>
+                        </v-menu>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6" class="pt-0 pb-0">
                         <v-select
                           v-model="editedItem.estado"
                           :items="[{state:'Activo',abbr:'A'},{state:'Inactivo',abbr:'I'}]"
@@ -351,6 +441,7 @@
                           item-text="label"
                           item-value="value"
                           prepend-icon="mdi-book-remove-multiple"
+                          :readonly="noMostrar"
                           required
                           multiple
                           chips
@@ -456,6 +547,11 @@ export default {
   // SET DEFAULT VARIABLES TO MANAGE THE INFORMATION
   data() {
     return {
+      noMostrar:false,
+      menui: false,
+      menuf: false,
+      fechaInicioLabel:null,
+      fechaFinLabel:null,
       step: 1,
       dialog: false,
       searchQuery: "",
@@ -512,6 +608,8 @@ export default {
         idfoco: 0,
         nombre: "",
         descripcion: "",
+        fechaInicio: null,
+        fechaFin: null,
         meta: 0,
         estado: "",
         idArticulo:[],
@@ -521,6 +619,8 @@ export default {
         idfoco: 0,
         nombre: "",
         descripcion: "",
+        fechaInicio: null,
+        fechaFin: null,
         meta: 0,
         estado: "",
         idArticulo:[],
@@ -530,6 +630,8 @@ export default {
         idfoco: 0,
         nombre: "",
         descripcion: "",
+        fechaInicio: null,
+        fechaFin: null,
         meta: 0,
         estado: "",
         idArticulo:[],
@@ -606,8 +708,8 @@ export default {
         const response = await http.get(`/Order/getFocos?Idaccount=${idAcc}`);
         if (response.status === "Ok") {
           this.productItems = response.data;
-          // console.log("llegaron los Focos");
-          // console.log(this.productItems);
+          console.log("llegaron los Focos");
+          console.log(this.productItems);
           if(this.productItems){
             this.productItems.forEach(foco=>{
               var cbxProductos = [];
@@ -718,7 +820,19 @@ export default {
     editItem(item) {
       this.editedIndex = this.productItems.indexOf(item);
       this.editedItem = Object.assign({}, item);
+
+      if(this.editedItem.fechaInicio!=null)
+        this.fechaInicioLabel = this.editedItem.fechaInicio.toString().split('T')[0];
+      else
+        this.fechaInicioLabel = null;
+
+      if(this.editedItem.fechaFin!=null)
+        this.fechaFinLabel = this.editedItem.fechaFin.toString().split('T')[0];
+      else
+        this.fechaFinLabel = null;
+      
       console.log(this.editedItem);
+      this.noMostrar = true;
       this.dialogProduct = true;
     },
 
@@ -760,7 +874,12 @@ export default {
         this.editedItem["idaccount"] = parseInt(this.getUserData.idAccount, 10);
         this.editedItem["meta"] = Number(this.editedItem["meta"]);
         this.editedItem["idfoco"] = Number(this.editedItem["idfoco"]);
-        console.log(this.editedItem);
+        
+        if(this.fechaInicioLabel!=null)
+          this.editedItem["fechaInicio"] = this.fechaInicioLabel.toString() + 'T00:00:00';
+        if(this.fechaFinLabel!=null)
+          this.editedItem["fechaFin"] = this.fechaFinLabel.toString() + 'T23:59:59';
+
         var type = "";
         if (this.editedIndex > -1) {
           //EDITAR ITEM
@@ -913,6 +1032,12 @@ export default {
     resetImport() {
       this.clearImportData();
       this.step = 1;
+    },
+
+    setearCampos(){
+      this.fechaInicioLabel = null;
+      this.fechaFinLabel = null;
+      this.noMostrar = false;
     },
 
     //CLEAN ALL IMPORT DATA
