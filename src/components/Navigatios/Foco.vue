@@ -778,6 +778,8 @@ export default {
         x["Descripcion"] = "" + x["Descripcion"];
         x["Meta"] = "" + x["Meta"];
         x["ProductosFoco"] = "" + x["ProductosFoco"];
+        x["Fecha_inicio"] = "" + x["Fecha_inicio"];
+        x["Fecha_fin"] = "" + x["Fecha_fin"];
         return x;
       });
 
@@ -792,7 +794,9 @@ export default {
         "Nombre" in json[0] &&
         "Descripcion" in json[0] &&
         "Meta" in json[0] &&
-        "ProductosFoco" in json[0]
+        "ProductosFoco" in json[0] &&
+        "Fecha_inicio" in json[0] &&
+        "Fecha_fin" in json[0]
       ) {
         return true;
       } else {
@@ -962,6 +966,8 @@ export default {
         this.excelItem.nombre = itemData["Nombre"].toString();
         this.excelItem.descripcion = itemData["Descripcion"].toString();
         this.excelItem.meta = parseInt(itemData["Meta"],10);
+        this.excelItem.fechaInicio = itemData["Fecha_inicio"].toString() + 'T00:00:00';
+        this.excelItem.fechaFin = itemData["Fecha_fin"].toString() + 'T23:59:59';
         this.excelItem.estado = "A";
         this.excelItem.idaccount = parseInt(this.getUserData.idAccount, 10);
         
