@@ -705,7 +705,7 @@ export default {
         var idAcc = parseInt(this.getUserData.idAccount, 10);
         
 
-        const response = await http.get(`/Order/getFocos?Idaccount=${idAcc}`);
+        const response = await http.get(`/Order/getFocosWeb?Idaccount=${idAcc}`);
         if (response.status === "Ok") {
           this.productItems = response.data;
           console.log("llegaron los Focos");
@@ -842,8 +842,11 @@ export default {
 
     //SET THE CURRENT PRODUCT TO BE DELETED
     deleteItem(item) {
+      console.log("deleteItem");
+      console.log(this.productItems.indexOf(item));
       this.editedIndex = this.productItems.indexOf(item);
       this.editedItem = Object.assign({}, item);
+      this.deleteItem = Object.assign({}, item);
       this.MessageCambioEstad="Desactivar Producto"
       this.eraseDialog = true;
     },
@@ -926,8 +929,10 @@ export default {
         this.setLoading(true);
         this.loadingProducts = true;
         await http.post(`/Order/ActiveFoco?idfoco=${this.editedItem.idfoco}`);
+        //getProductsFoco();
+        console.log(this.productItems.findIndex(x=>x.idfoco==this.editedItem.idfoco));
         this.productItems.find(x=>x.idfoco==this.editedItem.idfoco).estado='I';
-        this.productItems.splice(this.productItems.find(x=>x.idfoco==this.editedItem.idfoco),1);
+        //this.productItems.splice(this.productItems.findIndex(x=>x.idfoco==this.editedItem.idfoco),1);
       } catch (e) {
         alert(e);
       } finally {
