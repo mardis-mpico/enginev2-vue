@@ -20,6 +20,17 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar
+        v-model="snackbar"
+        :vertical="vertical"
+        :centered="true"
+        :timeout="3000"
+        center
+        shaped
+        color="red lighten-1"
+      >
+        {{ textbar }}
+    </v-snackbar>
     <v-row justify="center">
       <v-dialog v-model="dialog" persistent max-width="600px">
         <v-card>
@@ -275,7 +286,7 @@
                           <v-text-field
                             v-model="editedItem.idfoco"
                             name="idfoco"
-                            label="Código*"
+                            label="ID*"
                             prepend-icon="mdi-barcode-scan"
                             color="accent darken-1"
                             readonly
@@ -343,15 +354,23 @@
                           min-width="auto"
                         >
                           <template v-slot:activator="{ on, attrs }">
+                            <ValidationProvider
+                            name="Fecha Inicio"
+                            rules="required"
+                            v-slot="{ errors }"
+                            >
                             <v-combobox
                               v-model="fechaInicioLabel"
                               label="FECHA INICIO*"
                               prepend-icon="mdi-calendar"
                               readonly
                               required
+                              name="Fecha Inicio"
                               v-bind="attrs"
                               v-on="on"
+                              :error-messages="errors"
                             ></v-combobox>
+                            </ValidationProvider>
                           </template>
                           <v-date-picker
                             v-model="fechaInicioLabel"
@@ -387,20 +406,29 @@
                           min-width="auto"
                         >
                           <template v-slot:activator="{ on, attrs }">
+                            <ValidationProvider
+                            name="Fecha Fin"
+                            rules="required"
+                            v-slot="{ errors }"
+                            >
                             <v-combobox
                               v-model="fechaFinLabel"
                               label="FECHA FIN*"
+                              name = "Fecha Fin"
                               prepend-icon="mdi-calendar"
                               readonly
                               required
                               v-bind="attrs"
                               v-on="on"
+                              :error-messages="errors"
                             ></v-combobox>
+                            </ValidationProvider>
                           </template>
                           <v-date-picker
                             v-model="fechaFinLabel"
                             no-title
                             scrollable
+                            required
                           >
                             <v-spacer></v-spacer>
                             <v-btn
@@ -547,6 +575,9 @@ export default {
   // SET DEFAULT VARIABLES TO MANAGE THE INFORMATION
   data() {
     return {
+      snackbar: false,
+      textbar: 'Lorem ipsum dolor sit amet',
+      vertical: true,
       noMostrar:false,
       menui: false,
       menuf: false,
@@ -842,11 +873,8 @@ export default {
 
     //SET THE CURRENT PRODUCT TO BE DELETED
     deleteItem(item) {
-      console.log("deleteItem");
-      console.log(this.productItems.indexOf(item));
       this.editedIndex = this.productItems.indexOf(item);
       this.editedItem = Object.assign({}, item);
-      this.deleteItem = Object.assign({}, item);
       this.MessageCambioEstad="Desactivar Producto"
       this.eraseDialog = true;
     },
@@ -875,7 +903,18 @@ export default {
     //GUARDAR LOS CAMBIOS O EL NUEVO MERCADERISTA A LA LISTA
     async save() {
       var valid = this.$refs.observer.validate();
+
+      if(this.fechaInicioLabel > this.fechaFinLabel){
+        console.log("this.fechaInicioLabel > this.fechaFinLabel")
+        valid = false;
+        this.textbar = 'La fecha de inicio debe ser menor a la fecha fin'
+        this.snackbar = true;
+      }
+
       if (!valid) return;
+
+      console.log("GUARDO");
+    
       try {
         this.setLoading(true);
         this.editedItem["idaccount"] = parseInt(this.getUserData.idAccount, 10);
