@@ -6,9 +6,9 @@ import qs from "qs";
 // LocalstorageService
 const localStorageService = LocalStorageService.getService();
 //let BASE_URL = `https://dyvenpro.azurewebsites.net/api`;
-//let BASE_URL = `http://localhost:15953/api`;
+let BASE_URL = `http://localhost:15953/api`;
 //let BASE_URL = `https://mardisservice.azurewebsites.net/api`;
-let BASE_URL = `https://odkdyvenpro.azurewebsites.net/api`;
+//let BASE_URL = `https://odkdyvenpro.azurewebsites.net/api`;
 
 let instance = axios.create({
   baseURL: BASE_URL,
