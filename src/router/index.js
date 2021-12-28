@@ -55,6 +55,10 @@ const routes = [
         path: "Foco",
         component: () => import("../components/Navigatios/Foco.vue"),
       },
+      {
+        path: "Loteria",
+        component: () => import("../components/Navigatios/Loteria.vue"),
+      },
     ],
   },
 ];
